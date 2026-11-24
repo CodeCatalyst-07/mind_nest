@@ -50,6 +50,30 @@ MindNest/
 
 ---
 
+## 📋 Weekly Well-Being Assessment (WHO-5)
+
+MindNest's weekly self-reflection tool is adapted from the **WHO-5 Well-Being Index** developed by the World Health Organization. The WHO-5 is one of the most widely used questionnaires for assessing subjective psychological well-being.
+
+### Questions & Scoring Method
+Students evaluate 5 positive statements over the last two weeks on a 6-point scale:
+- **Always** (5)
+- **Very often** (4)
+- **Often** (3)
+- **Sometimes** (2)
+- **Rarely** (1)
+- **Never** (0)
+
+The **raw score** ranges from 0 to 25. This raw score is multiplied by 4 to generate a standardized **percentage score** from 0% to 100%, classified into 4 tiers:
+- **72% – 100%**: *Thriving* (High vitality and positive spirits)
+- **50% – 71%**: *Doing okay* (Moderate, stable well-being)
+- **29% – 49%**: *Needs attention* (Elevated stress or low vitality)
+- **0% – 28%**: *Low* (Significantly reduced well-being)
+
+> [!NOTE]
+> **Non-Diagnostic Disclaimer**: The MindNest questionnaire is strictly an educational self-check and reflective tool for college students to monitor their personal trends. It is **not** a clinical diagnostic instrument. Students experiencing prolonged distress are warmly encouraged to consult campus counseling services, healthcare professionals, or trusted adults.
+
+---
+
 ## 🚀 How to Run
 
 1. **Install dependencies**:
