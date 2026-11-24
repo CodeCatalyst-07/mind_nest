@@ -74,6 +74,32 @@ The **raw score** ranges from 0 to 25. This raw score is multiplied by 4 to gene
 
 ---
 
+## 📊 Trends, Insights & Analytics
+
+MindNest features an insights dashboard on the **Trends** tab that transforms raw daily check-ins and weekly assessment scores into visual charts and plain-language reflections.
+
+### Pure SVG Data Visualizations (`react-native-svg`)
+All charts are custom-rendered directly with `react-native-svg` and animated using React Native's built-in `Animated` API without heavy third-party chart libraries:
+- **Mood Trajectory (`MoodLineChart`)**: A continuous trendline with smooth animated draw-in, gradient area fill, and mood-colored data nodes (levels 1–5).
+- **Monthly Mood Calendar (`MoodHeatmap`)**: A 7-column calendar grid showing every day of the current month colored by that day's recorded mood rating.
+- **Sleep Duration vs. Mood (`SleepBarChart`)**: Vertical duration bars (0–12h) dynamically colored by that day's mood rating, with a dashed reference line at 7 hours (recommended student sleep benchmark).
+- **Tag Frequency Distribution (`TagFrequencyChart`)**: Horizontal bars showing the student's top contextual tags and activities.
+- **WHO-5 Trajectory (`AssessmentTrendChart`)**: Long-term percentage trendline mapped alongside faint reference threshold lines (72% *Thriving*, 50% *Doing okay*, 29% *Needs attention*).
+
+### Statistical Calculations (`stats.js`)
+- **Range Filtering**: Slices data by calendar date boundaries (Last 7 Days vs. Last 30 Days).
+- **Averages**: Calculates arithmetic means for mood rating, sleep hours, and energy level with 1 decimal precision.
+- **Streak Logic**: Tracks consecutive check-in days up to today. If today has not been logged yet, an active streak ending yesterday remains intact so the streak is not prematurely lost before bedtime.
+
+### Plain-Language Non-Clinical Insights (`insights.js`)
+Reflective insights detect gentle correlational patterns in student life without medical or diagnostic assertions:
+1. **Sleep & Mood Link**: Compares average mood on nights with 7+ hours of sleep against nights with under 6 hours (triggers when $\ge 3$ entries exist in both groups).
+2. **Best Weekday**: Determines which day of the week exhibits the highest average mood score (requires $\ge 4$ multi-day entries).
+3. **Common Stressors**: Identifies the most recurring context tags on lower-mood days ($\text{mood} \le 2$, $\ge 3$ days).
+4. **Consistency Encouragement**: Celebrates multi-day check-in milestones to encourage habit formation.
+
+---
+
 ## 🚀 How to Run
 
 1. **Install dependencies**:
