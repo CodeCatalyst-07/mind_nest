@@ -24,6 +24,7 @@ import {
   calculateStreak,
   getMoodEmoji,
 } from '../utils/stats';
+import { generateInsights } from '../utils/insights';
 
 const RANGE_OPTIONS = [
   { label: 'Last 7 Days', value: 7 },
@@ -31,8 +32,8 @@ const RANGE_OPTIONS = [
 ];
 
 export default function TrendsScreen() {
-  const { colors, spacing } = useTheme();
-  const { checkIns } = useData();
+  const { colors, spacing, borderRadius } = useTheme();
+  const { checkIns, assessments } = useData();
   const [range, setRange] = useState(7);
 
   // Filtered check-ins based on selected timeframe
@@ -43,6 +44,9 @@ export default function TrendsScreen() {
   const avgSleep = calculateAverageSleep(filteredCheckIns);
   const streak = calculateStreak(checkIns);
   const moodEmoji = getMoodEmoji(avgMood);
+
+  // Personalized non-clinical insights
+  const insightsList = generateInsights(checkIns, assessments);
 
   return (
     <Screen scrollable>
@@ -99,6 +103,61 @@ export default function TrendsScreen() {
 
       {/* Tag Frequency Horizontal Bars */}
       <TagFrequencyChart checkIns={filteredCheckIns} />
+
+      {/* Insights & Observations Section */}
+      <View style={styles.sectionHeader}>
+        <AppText variant="subheading" weight="bold">
+          Reflective Patterns & Insights
+        </AppText>
+        <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+          Gentle observations from your self-check logs.
+        </AppText>
+      </View>
+
+      <View style={[styles.insightsList, { gap: spacing.sm }]}>
+        {insightsList.map((item) => (
+          <View
+            key={`insight-${item.id}`}
+            style={[
+              styles.insightCard,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: borderRadius.lg,
+                padding: spacing.md,
+              },
+            ]}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`${item.title}: ${item.text}`}
+          >
+            <View
+              style={[
+                styles.iconBadge,
+                {
+                  backgroundColor: colors.primaryLight,
+                  borderRadius: borderRadius.md,
+                },
+              ]}
+            >
+              <AppText variant="title">{item.icon}</AppText>
+            </View>
+
+            <View style={styles.insightContent}>
+              <AppText variant="body" weight="bold" color={colors.text}>
+                {item.title}
+              </AppText>
+              <AppText
+                variant="bodySmall"
+                color={colors.mutedText}
+                style={{ marginTop: 4, lineHeight: 18 }}
+              >
+                {item.text}
+              </AppText>
+            </View>
+          </View>
+        ))}
+      </View>
     </Screen>
   );
 }
@@ -110,5 +169,26 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     marginBottom: 16,
+  },
+  sectionHeader: {
+    marginBottom: 12,
+  },
+  insightsList: {
+    marginBottom: 16,
+  },
+  insightCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+  },
+  iconBadge: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  insightContent: {
+    flex: 1,
   },
 });
