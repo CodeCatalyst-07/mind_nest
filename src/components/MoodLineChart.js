@@ -2,11 +2,11 @@
  * src/components/MoodLineChart.js
  * Purpose: Custom SVG line chart displaying mood trajectory over time.
  * Features a gradient area fill under the line, mood-colored node circles,
- * subtle background reference gridlines, and day labels.
+ * subtle background reference gridlines, and an animated left-to-right draw-in.
  */
 
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated } from 'react-native';
 import Svg, {
   Path,
   Defs,
@@ -22,6 +22,18 @@ import { useTheme } from '../theme/ThemeContext';
 export default function MoodLineChart({ checkIns = [] }) {
   const { colors, spacing, borderRadius } = useTheme();
   const [containerWidth, setContainerWidth] = useState(320);
+
+  // Animated value for left-to-right draw-in effect
+  const drawAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    drawAnim.setValue(0);
+    Animated.timing(drawAnim, {
+      toValue: 1,
+      duration: 850,
+      useNativeDriver: false,
+    }).start();
+  }, [checkIns, containerWidth, drawAnim]);
 
   const height = 180;
   const paddingLeft = 32;
@@ -50,7 +62,7 @@ export default function MoodLineChart({ checkIns = [] }) {
     5: colors.mood.level5,
   };
 
-  // Generate path string
+  // Generate line and area path strings
   let linePath = '';
   let areaPath = '';
 
@@ -60,7 +72,12 @@ export default function MoodLineChart({ checkIns = [] }) {
       y: getY(item.mood),
     }));
 
-    linePath = `M ${points[0].x} ${points[0].y} ` + points.slice(1).map((p) => `L ${p.x} ${p.y}`).join(' ');
+    linePath =
+      `M ${points[0].x} ${points[0].y} ` +
+      points
+        .slice(1)
+        .map((p) => `L ${p.x} ${p.y}`)
+        .join(' ');
 
     const bottomY = paddingTop + graphHeight;
     areaPath = `${linePath} L ${points[points.length - 1].x} ${bottomY} L ${points[0].x} ${bottomY} Z`;
@@ -68,6 +85,12 @@ export default function MoodLineChart({ checkIns = [] }) {
 
   // Generate X-axis short date labels (show max ~7 labels evenly)
   const step = Math.max(1, Math.floor(checkIns.length / 6));
+
+  // Animated width interpolation for draw-in
+  const animatedClipWidth = drawAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [paddingLeft, containerWidth],
+  });
 
   return (
     <View
@@ -104,99 +127,114 @@ export default function MoodLineChart({ checkIns = [] }) {
           </AppText>
         </View>
       ) : (
-        <Svg width={containerWidth} height={height}>
-          <Defs>
-            <LinearGradient id="moodAreaGrad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={colors.primary} stopOpacity="0.4" />
-              <Stop offset="1" stopColor={colors.primary} stopOpacity="0.0" />
-            </LinearGradient>
-          </Defs>
+        <View style={{ width: containerWidth, height, position: 'relative' }}>
+          {/* Static Background Gridlines & Y-axis labels */}
+          <Svg width={containerWidth} height={height} style={StyleSheet.absoluteFill}>
+            {[1, 2, 3, 4, 5].map((lvl) => {
+              const y = getY(lvl);
+              return (
+                <React.Fragment key={`grid-${lvl}`}>
+                  <Line
+                    x1={paddingLeft}
+                    y1={y}
+                    x2={containerWidth - paddingRight}
+                    y2={y}
+                    stroke={colors.border}
+                    strokeDasharray="4 4"
+                    strokeWidth="1"
+                  />
+                  <SvgText
+                    x={paddingLeft - 8}
+                    y={y + 4}
+                    fontSize="11"
+                    fill={colors.mutedText}
+                    textAnchor="end"
+                  >
+                    {lvl}
+                  </SvgText>
+                </React.Fragment>
+              );
+            })}
+          </Svg>
 
-          {/* Horizontal Gridlines for Mood 1 to 5 */}
-          {[1, 2, 3, 4, 5].map((lvl) => {
-            const y = getY(lvl);
-            return (
-              <React.Fragment key={`grid-${lvl}`}>
-                <Line
-                  x1={paddingLeft}
-                  y1={y}
-                  x2={containerWidth - paddingRight}
-                  y2={y}
-                  stroke={colors.border}
-                  strokeDasharray="4 4"
-                  strokeWidth="1"
+          {/* Animated Draw-in Foreground Layer */}
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              left: 0,
+              width: animatedClipWidth,
+              overflow: 'hidden',
+            }}
+          >
+            <Svg width={containerWidth} height={height}>
+              <Defs>
+                <LinearGradient id="moodAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0" stopColor={colors.primary} stopOpacity="0.38" />
+                  <Stop offset="1" stopColor={colors.primary} stopOpacity="0.0" />
+                </LinearGradient>
+              </Defs>
+
+              {/* Gradient Area Fill */}
+              {areaPath ? <Path d={areaPath} fill="url(#moodAreaGrad)" /> : null}
+
+              {/* Connecting Trendline */}
+              {linePath ? (
+                <Path
+                  d={linePath}
+                  stroke={colors.primary}
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
-                <SvgText
-                  x={paddingLeft - 8}
-                  y={y + 4}
-                  fontSize="11"
-                  fill={colors.mutedText}
-                  textAnchor="end"
-                >
-                  {lvl}
-                </SvgText>
-              </React.Fragment>
-            );
-          })}
+              ) : null}
 
-          {/* Area Fill */}
-          {areaPath ? <Path d={areaPath} fill="url(#moodAreaGrad)" /> : null}
+              {/* Mood Node Dots */}
+              {checkIns.map((item, index) => {
+                const cx = getX(index, checkIns.length);
+                const cy = getY(item.mood);
+                const dotColor = moodColorMap[item.mood] || colors.primary;
 
-          {/* Connecting Line */}
-          {linePath ? (
-            <Path
-              d={linePath}
-              stroke={colors.primary}
-              strokeWidth="3"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          ) : null}
+                return (
+                  <Circle
+                    key={`dot-${item.id || index}`}
+                    cx={cx}
+                    cy={cy}
+                    r={index === checkIns.length - 1 ? 6 : 4.5}
+                    fill={dotColor}
+                    stroke={colors.card}
+                    strokeWidth={2}
+                  />
+                );
+              })}
 
-          {/* Mood Node Dots */}
-          {checkIns.map((item, index) => {
-            const cx = getX(index, checkIns.length);
-            const cy = getY(item.mood);
-            const dotColor = moodColorMap[item.mood] || colors.primary;
+              {/* X-axis Date Labels */}
+              {checkIns.map((item, index) => {
+                if (index !== 0 && index !== checkIns.length - 1 && index % step !== 0) {
+                  return null;
+                }
 
-            return (
-              <Circle
-                key={`dot-${item.id || index}`}
-                cx={cx}
-                cy={cy}
-                r={index === checkIns.length - 1 ? 6 : 4.5}
-                fill={dotColor}
-                stroke={colors.card}
-                strokeWidth={2}
-              />
-            );
-          })}
+                const cx = getX(index, checkIns.length);
+                const shortDate = item.date ? item.date.slice(5) : '';
 
-          {/* X-axis Date Labels */}
-          {checkIns.map((item, index) => {
-            // Show label for first, last, and every step
-            if (index !== 0 && index !== checkIns.length - 1 && index % step !== 0) {
-              return null;
-            }
-
-            const cx = getX(index, checkIns.length);
-            const shortDate = item.date ? item.date.slice(5) : ''; // "11-24"
-
-            return (
-              <SvgText
-                key={`lbl-${item.id || index}`}
-                x={cx}
-                y={height - 6}
-                fontSize="10"
-                fill={colors.mutedText}
-                textAnchor="middle"
-              >
-                {shortDate}
-              </SvgText>
-            );
-          })}
-        </Svg>
+                return (
+                  <SvgText
+                    key={`lbl-${item.id || index}`}
+                    x={cx}
+                    y={height - 6}
+                    fontSize="10"
+                    fill={colors.mutedText}
+                    textAnchor="middle"
+                  >
+                    {shortDate}
+                  </SvgText>
+                );
+              })}
+            </Svg>
+          </Animated.View>
+        </View>
       )}
     </View>
   );
