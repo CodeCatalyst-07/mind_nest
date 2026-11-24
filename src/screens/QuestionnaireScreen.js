@@ -1,7 +1,7 @@
 /**
  * src/screens/QuestionnaireScreen.js
  * Purpose: Interactive Weekly Questionnaire screen for student well-being (adapted WHO-5).
- * Displays one statement per page with progress tracking and smooth slide/fade animations.
+ * Features one question per page, animated transitions, back navigation, and answer validation.
  */
 
 import React, { useState, useRef } from 'react';
@@ -12,6 +12,7 @@ import Screen from '../components/Screen';
 import AppText from '../components/AppText';
 import ProgressBar from '../components/ProgressBar';
 import OptionButton from '../components/OptionButton';
+import AppButton from '../components/AppButton';
 import { useTheme } from '../theme/ThemeContext';
 import { QUESTIONNAIRE_ITEMS, ANSWER_OPTIONS } from '../data/questionnaire';
 
@@ -30,6 +31,8 @@ export default function QuestionnaireScreen({ navigation }) {
 
   const currentQuestion = QUESTIONNAIRE_ITEMS[currentIndex];
   const selectedValue = answers[currentIndex];
+  const isAnswered = selectedValue !== null;
+  const isLastQuestion = currentIndex === QUESTIONNAIRE_ITEMS.length - 1;
 
   /**
    * Smoothly animates question content out, updates state, and animates new content in.
@@ -37,10 +40,10 @@ export default function QuestionnaireScreen({ navigation }) {
   const animateToQuestion = (newIndex) => {
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 0, duration: 120, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: -15, duration: 120, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: newIndex > currentIndex ? -15 : 15, duration: 120, useNativeDriver: true }),
     ]).start(() => {
       setCurrentIndex(newIndex);
-      slideAnim.setValue(15);
+      slideAnim.setValue(newIndex > currentIndex ? 15 : -15);
       Animated.parallel([
         Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
         Animated.timing(slideAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
@@ -52,6 +55,19 @@ export default function QuestionnaireScreen({ navigation }) {
     const updated = [...answers];
     updated[currentIndex] = value;
     setAnswers(updated);
+  };
+
+  const handleNext = () => {
+    if (!isAnswered) return;
+    if (!isLastQuestion) {
+      animateToQuestion(currentIndex + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentIndex > 0) {
+      animateToQuestion(currentIndex - 1);
+    }
   };
 
   return (
@@ -119,6 +135,26 @@ export default function QuestionnaireScreen({ navigation }) {
           </View>
         </Animated.View>
       </ScrollView>
+
+      {/* Bottom Bar: Back Navigation and Answer Validation */}
+      <View style={[styles.bottomBar, { borderTopColor: colors.border, backgroundColor: colors.card }]}>
+        {currentIndex > 0 ? (
+          <AppButton
+            title="Back"
+            variant="secondary"
+            onPress={handleBack}
+            style={styles.backButton}
+          />
+        ) : null}
+
+        <AppButton
+          title={isLastQuestion ? 'View Results' : 'Next'}
+          variant="primary"
+          disabled={!isAnswered}
+          onPress={handleNext}
+          style={styles.nextButton}
+        />
+      </View>
     </Screen>
   );
 }
@@ -163,7 +199,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 24,
   },
   animatedContainer: {
     width: '100%',
@@ -177,5 +213,18 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     width: '100%',
+  },
+  bottomBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 12,
+  },
+  backButton: {
+    flex: 1,
+  },
+  nextButton: {
+    flex: 2,
   },
 });
