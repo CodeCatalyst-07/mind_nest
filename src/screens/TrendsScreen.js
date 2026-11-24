@@ -14,6 +14,7 @@ import StatCard from '../components/StatCard';
 import MoodLineChart from '../components/MoodLineChart';
 import MoodHeatmap from '../components/MoodHeatmap';
 import SleepBarChart from '../components/SleepBarChart';
+import TagFrequencyChart from '../components/TagFrequencyChart';
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import {
@@ -95,6 +96,9 @@ export default function TrendsScreen() {
 
       {/* Sleep Bar Chart (Coloured by Mood) */}
       <SleepBarChart checkIns={filteredCheckIns} />
+
+      {/* Tag Frequency Horizontal Bars */}
+      <TagFrequencyChart checkIns={filteredCheckIns} />
     </Screen>
   );
 }
