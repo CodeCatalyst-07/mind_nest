@@ -13,6 +13,7 @@ import SegmentedControl from '../components/SegmentedControl';
 import StatCard from '../components/StatCard';
 import MoodLineChart from '../components/MoodLineChart';
 import MoodHeatmap from '../components/MoodHeatmap';
+import SleepBarChart from '../components/SleepBarChart';
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import {
@@ -91,6 +92,9 @@ export default function TrendsScreen() {
 
       {/* Monthly Mood Heatmap Calendar */}
       <MoodHeatmap checkIns={checkIns} />
+
+      {/* Sleep Bar Chart (Coloured by Mood) */}
+      <SleepBarChart checkIns={filteredCheckIns} />
     </Screen>
   );
 }
