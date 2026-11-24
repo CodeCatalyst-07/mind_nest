@@ -11,6 +11,7 @@ import Screen from '../components/Screen';
 import AppText from '../components/AppText';
 import SegmentedControl from '../components/SegmentedControl';
 import StatCard from '../components/StatCard';
+import MoodLineChart from '../components/MoodLineChart';
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import {
@@ -83,6 +84,9 @@ export default function TrendsScreen() {
           subtitle={streak > 0 ? 'keep going!' : 'start today'}
         />
       </View>
+
+      {/* Mood Line Chart */}
+      <MoodLineChart checkIns={filteredCheckIns} />
     </Screen>
   );
 }
