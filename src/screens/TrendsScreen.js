@@ -2,11 +2,12 @@
  * src/screens/TrendsScreen.js
  * Purpose: Tab screen displaying student mood trends, weekly averages, and insights.
  * Features range switching (7 Days vs 30 Days), count-up summary cards, SVG charts,
- * pattern reflections, and recent check-in history.
+ * pattern reflections, and recent check-in history with delete confirmation.
  */
 
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import AppText from '../components/AppText';
 import SegmentedControl from '../components/SegmentedControl';
@@ -26,6 +27,7 @@ import {
   getMoodEmoji,
 } from '../utils/stats';
 import { generateInsights } from '../utils/insights';
+import { formatDisplayDate } from '../utils/dateUtils';
 
 const RANGE_OPTIONS = [
   { label: 'Last 7 Days', value: 7 },
@@ -34,7 +36,7 @@ const RANGE_OPTIONS = [
 
 export default function TrendsScreen() {
   const { colors, spacing, borderRadius } = useTheme();
-  const { checkIns, assessments } = useData();
+  const { checkIns, assessments, deleteCheckIn } = useData();
   const [range, setRange] = useState(7);
 
   // Filtered check-ins based on selected timeframe
@@ -48,6 +50,26 @@ export default function TrendsScreen() {
 
   // Personalized non-clinical insights
   const insightsList = generateInsights(checkIns, assessments);
+
+  // Recent check-ins sorted newest to oldest
+  const recentCheckIns = [...checkIns]
+    .sort((a, b) => (a.date > b.date ? -1 : 1))
+    .slice(0, 10);
+
+  const handleDelete = (item) => {
+    Alert.alert(
+      'Delete Check-in',
+      `Are you sure you want to delete your check-in for ${formatDisplayDate(item.date)}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteCheckIn(item.id),
+        },
+      ]
+    );
+  };
 
   return (
     <Screen scrollable>
@@ -162,6 +184,116 @@ export default function TrendsScreen() {
           </View>
         ))}
       </View>
+
+      {/* Recent Check-ins List */}
+      <View style={styles.sectionHeader}>
+        <AppText variant="subheading" weight="bold">
+          Recent Check-ins
+        </AppText>
+        <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+          Your latest recorded self-checks.
+        </AppText>
+      </View>
+
+      {recentCheckIns.length === 0 ? (
+        <View
+          style={[
+            styles.emptyCheckIns,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderRadius: borderRadius.lg,
+              padding: spacing.md,
+            },
+          ]}
+        >
+          <AppText variant="bodySmall" color={colors.mutedText} style={{ textAlign: 'center' }}>
+            No check-in history yet.
+          </AppText>
+        </View>
+      ) : (
+        <View style={[styles.recentList, { gap: spacing.sm }]}>
+          {recentCheckIns.map((item) => (
+            <View
+              key={`recent-${item.id}`}
+              style={[
+                styles.recentItem,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderRadius: borderRadius.lg,
+                  padding: spacing.md,
+                },
+              ]}
+            >
+              <View style={styles.recentLeft}>
+                <View
+                  style={[
+                    styles.recentEmojiBox,
+                    {
+                      backgroundColor: colors.primaryLight,
+                      borderRadius: borderRadius.md,
+                    },
+                  ]}
+                >
+                  <AppText variant="title">{getMoodEmoji(item.mood)}</AppText>
+                </View>
+
+                <View style={styles.recentMeta}>
+                  <AppText variant="bodySmall" weight="bold">
+                    {formatDisplayDate(item.date)}
+                  </AppText>
+                  <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+                    Mood: {item.mood}/5 • Sleep: {item.sleepHours}h • Energy: {item.energy}/5
+                  </AppText>
+
+                  {item.note ? (
+                    <AppText
+                      variant="caption"
+                      color={colors.text}
+                      style={styles.recentNote}
+                      numberOfLines={2}
+                    >
+                      "{item.note}"
+                    </AppText>
+                  ) : null}
+
+                  {Array.isArray(item.tags) && item.tags.length > 0 ? (
+                    <View style={styles.recentTags}>
+                      {item.tags.map((t) => (
+                        <View
+                          key={`rt-${item.id}-${t}`}
+                          style={[
+                            styles.recentTagChip,
+                            {
+                              backgroundColor: colors.border,
+                              borderRadius: borderRadius.xs,
+                            },
+                          ]}
+                        >
+                          <AppText variant="caption" color={colors.mutedText} style={{ fontSize: 10 }}>
+                            {t}
+                          </AppText>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => handleDelete(item)}
+                style={styles.deleteButton}
+                activeOpacity={0.6}
+                accessibilityRole="button"
+                accessibilityLabel={`Delete check-in for ${formatDisplayDate(item.date)}`}
+              >
+                <Ionicons name="trash-outline" size={20} color={colors.mutedText} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      )}
     </Screen>
   );
 }
@@ -178,7 +310,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   insightsList: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   insightCard: {
     flexDirection: 'row',
@@ -194,5 +326,55 @@ const styles = StyleSheet.create({
   },
   insightContent: {
     flex: 1,
+  },
+  recentList: {
+    marginBottom: 24,
+  },
+  recentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+  },
+  recentLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  recentEmojiBox: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  recentMeta: {
+    flex: 1,
+  },
+  recentNote: {
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  recentTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 6,
+  },
+  recentTagChip: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  deleteButton: {
+    padding: 8,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyCheckIns: {
+    borderWidth: 1,
+    marginBottom: 24,
   },
 });
