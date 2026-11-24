@@ -1,67 +1,85 @@
 /**
  * src/screens/CheckInScreen.js
- * Purpose: Full-screen stack route for Daily Mood Check-in.
- * Displays mood level color swatches (1-5) as a preview of the upcoming mood picker.
+ * Purpose: Multi-step daily wellness check-in screen for MindNest.
+ * Features a custom top bar with close button, segmented progress bar,
+ * dynamic multi-step content, and bottom action buttons.
  */
 
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import AppText from '../components/AppText';
-import Card from '../components/Card';
 import { useTheme } from '../theme/ThemeContext';
 
-export default function CheckInScreen() {
+export default function CheckInScreen({ navigation }) {
   const { colors, spacing } = useTheme();
 
-  const moodLevels = [
-    { level: 1, label: 'Terrible', color: colors.mood.level1 },
-    { level: 2, label: 'Bad', color: colors.mood.level2 },
-    { level: 3, label: 'Okay', color: colors.mood.level3 },
-    { level: 4, label: 'Good', color: colors.mood.level4 },
-    { level: 5, label: 'Great', color: colors.mood.level5 },
-  ];
-
   return (
-    <Screen scrollable>
-      <Card>
-        <AppText variant="heading">Daily Mood Check-in</AppText>
-        <AppText variant="body" color={colors.mutedText} style={{ marginTop: spacing.xs }}>
-          This screen will let students record their daily mood and optional notes.
-        </AppText>
-      </Card>
+    <Screen style={styles.screen}>
+      {/* Custom Top Navigation Bar */}
+      <View style={[styles.topBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.closeButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityLabel="Close check-in"
+          accessibilityRole="button"
+        >
+          <Ionicons name="close" size={26} color={colors.text} />
+        </TouchableOpacity>
 
-      <Card>
-        <AppText variant="heading" style={{ marginBottom: spacing.sm }}>
-          5-Level Mood Palette Preview
-        </AppText>
-        <View style={styles.paletteRow}>
-          {moodLevels.map((item) => (
-            <View key={item.level} style={styles.moodItem}>
-              <View style={[styles.moodCircle, { backgroundColor: item.color }]} />
-              <AppText variant="caption" style={{ marginTop: 4 }}>
-                {item.label}
-              </AppText>
-            </View>
-          ))}
+        <View style={styles.titleContainer}>
+          <AppText variant="heading" style={styles.headerTitle}>
+            Daily Check-in
+          </AppText>
         </View>
-      </Card>
+
+        {/* Empty 44px spacer for visual balance / optical centering */}
+        <View style={styles.headerSpacer} />
+      </View>
+
+      {/* Main Content Shell (populated in steps 3.2 - 3.12) */}
+      <View style={styles.contentArea}>
+        {/* Placeholder content for step 3.1 */}
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  paletteRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
+  screen: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
   },
-  moodItem: {
+  topBar: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleContainer: {
+    flex: 1,
     alignItems: 'center',
   },
-  moodCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  headerTitle: {
+    fontSize: 18,
+  },
+  headerSpacer: {
+    width: 44,
+    height: 44,
+  },
+  contentArea: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
 });

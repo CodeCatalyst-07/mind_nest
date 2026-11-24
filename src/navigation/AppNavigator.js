@@ -43,8 +43,7 @@ export default function AppNavigator() {
         name="CheckIn"
         component={CheckInScreen}
         options={{
-          title: 'Daily Check-in',
-          headerBackTitle: 'Back',
+          headerShown: false,
         }}
       />
       <Stack.Screen
