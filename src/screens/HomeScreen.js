@@ -1,8 +1,8 @@
 /**
  * src/screens/HomeScreen.js
  * Purpose: Home screen tab of MindNest.
- * Displays a friendly greeting and placeholder action cards to open the
- * Daily Check-in and Weekly Questionnaire full-screen stack routes.
+ * Displays a friendly greeting, live local storage status, and placeholder
+ * action cards to open the Daily Check-in and Weekly Questionnaire full-screen stack routes.
  */
 
 import React from 'react';
@@ -11,10 +11,17 @@ import Screen from '../components/Screen';
 import AppText from '../components/AppText';
 import Card from '../components/Card';
 import { useTheme } from '../theme/ThemeContext';
+import { useData } from '../context/DataContext';
+import { getMoodByValue } from '../data/moods';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen({ navigation }) {
   const { colors, spacing } = useTheme();
+  const { checkIns, getTodayCheckIn } = useData();
+
+  // Retrieve today's check-in (if logged)
+  const todayCheckIn = getTodayCheckIn();
+  const todayMood = todayCheckIn ? getMoodByValue(todayCheckIn.mood) : null;
 
   return (
     <Screen scrollable>
@@ -25,6 +32,34 @@ export default function HomeScreen({ navigation }) {
           Your quiet space for student mental wellness
         </AppText>
       </View>
+
+      {/* Storage Status / Verification Card (Phase 2) */}
+      <Card style={{ backgroundColor: colors.primaryLight + '40', borderColor: colors.primary }}>
+        <View style={styles.statusRow}>
+          <View style={styles.statusCol}>
+            <AppText variant="caption" color={colors.primary}>
+              STORAGE STATUS
+            </AppText>
+            <AppText variant="heading" style={{ marginTop: 2 }}>
+              {checkIns.length} {checkIns.length === 1 ? 'Check-in' : 'Check-ins'} Saved
+            </AppText>
+          </View>
+          <View style={styles.moodBadge}>
+            {todayMood ? (
+              <View style={styles.moodRow}>
+                <AppText style={{ fontSize: 24 }}>{todayMood.emoji}</AppText>
+                <AppText variant="caption" style={{ marginLeft: 6, fontWeight: '600' }}>
+                  {todayMood.label}
+                </AppText>
+              </View>
+            ) : (
+              <AppText variant="caption" color={colors.mutedText}>
+                No entry today
+              </AppText>
+            )}
+          </View>
+        </View>
+      </Card>
 
       {/* Overview Card */}
       <Card>
@@ -82,6 +117,22 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 20,
     marginTop: 8,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusCol: {
+    flex: 1,
+  },
+  moodBadge: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  moodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   sectionTitle: {
     marginVertical: 12,
