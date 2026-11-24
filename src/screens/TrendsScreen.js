@@ -15,6 +15,7 @@ import MoodLineChart from '../components/MoodLineChart';
 import MoodHeatmap from '../components/MoodHeatmap';
 import SleepBarChart from '../components/SleepBarChart';
 import TagFrequencyChart from '../components/TagFrequencyChart';
+import AssessmentTrendChart from '../components/AssessmentTrendChart';
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import {
@@ -103,6 +104,9 @@ export default function TrendsScreen() {
 
       {/* Tag Frequency Horizontal Bars */}
       <TagFrequencyChart checkIns={filteredCheckIns} />
+
+      {/* Well-Being Score Trend (WHO-5 Assessments) */}
+      <AssessmentTrendChart assessments={assessments} />
 
       {/* Insights & Observations Section */}
       <View style={styles.sectionHeader}>
