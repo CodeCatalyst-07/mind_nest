@@ -1,15 +1,16 @@
 /**
  * src/screens/QuestionnaireScreen.js
  * Purpose: Interactive Weekly Questionnaire screen for student well-being (adapted WHO-5).
- * Displays one statement per page with 6 standardized answer options.
+ * Displays one statement per page with progress tracking and smooth slide/fade animations.
  */
 
-import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Screen from '../components/Screen';
 import AppText from '../components/AppText';
+import ProgressBar from '../components/ProgressBar';
 import OptionButton from '../components/OptionButton';
 import { useTheme } from '../theme/ThemeContext';
 import { QUESTIONNAIRE_ITEMS, ANSWER_OPTIONS } from '../data/questionnaire';
@@ -23,8 +24,29 @@ export default function QuestionnaireScreen({ navigation }) {
   // Answers array holding selected values (0-5) for each of the 5 questions
   const [answers, setAnswers] = useState([null, null, null, null, null]);
 
+  // Transition animations
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
   const currentQuestion = QUESTIONNAIRE_ITEMS[currentIndex];
   const selectedValue = answers[currentIndex];
+
+  /**
+   * Smoothly animates question content out, updates state, and animates new content in.
+   */
+  const animateToQuestion = (newIndex) => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 0, duration: 120, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: -15, duration: 120, useNativeDriver: true }),
+    ]).start(() => {
+      setCurrentIndex(newIndex);
+      slideAnim.setValue(15);
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+      ]).start();
+    });
+  };
 
   const handleSelectOption = (value) => {
     const updated = [...answers];
@@ -55,27 +77,47 @@ export default function QuestionnaireScreen({ navigation }) {
         <View style={styles.headerSpacer} />
       </View>
 
-      {/* Main Question Body */}
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.questionContainer}>
-          <AppText variant="title" style={styles.questionText}>
-            {currentQuestion.text}
+      {/* Progress Indicator */}
+      <View style={styles.progressSection}>
+        <View style={styles.progressHeader}>
+          <AppText variant="caption" color={colors.primary} style={{ fontWeight: '700' }}>
+            QUESTION {currentIndex + 1} OF {QUESTIONNAIRE_ITEMS.length}
           </AppText>
         </View>
+        <ProgressBar currentStep={currentIndex} totalSteps={QUESTIONNAIRE_ITEMS.length} />
+      </View>
 
-        {/* Options List */}
-        <View style={[styles.optionsContainer, { marginTop: spacing.md }]}>
-          {ANSWER_OPTIONS.map((opt) => (
-            <OptionButton
-              key={opt.value}
-              value={opt.value}
-              label={opt.label}
-              description={opt.description}
-              isSelected={selectedValue === opt.value}
-              onSelect={handleSelectOption}
-            />
-          ))}
-        </View>
+      {/* Main Question Body with Slide / Fade Animation */}
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <Animated.View
+          style={[
+            styles.animatedContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateX: slideAnim }],
+            },
+          ]}
+        >
+          <View style={styles.questionContainer}>
+            <AppText variant="title" style={styles.questionText}>
+              {currentQuestion.text}
+            </AppText>
+          </View>
+
+          {/* Options List */}
+          <View style={[styles.optionsContainer, { marginTop: spacing.sm }]}>
+            {ANSWER_OPTIONS.map((opt) => (
+              <OptionButton
+                key={opt.value}
+                value={opt.value}
+                label={opt.label}
+                description={opt.description}
+                isSelected={selectedValue === opt.value}
+                onSelect={handleSelectOption}
+              />
+            ))}
+          </View>
+        </Animated.View>
       </ScrollView>
     </Screen>
   );
@@ -111,10 +153,20 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
   },
+  progressSection: {
+    paddingTop: 8,
+  },
+  progressHeader: {
+    paddingHorizontal: 20,
+    marginBottom: -4,
+  },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 16,
     paddingBottom: 32,
+  },
+  animatedContainer: {
+    width: '100%',
   },
   questionContainer: {
     marginBottom: 16,
