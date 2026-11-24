@@ -18,11 +18,14 @@ import AppButton from '../components/AppButton';
 import ScoreGauge from '../components/ScoreGauge';
 
 import { useTheme } from '../theme/ThemeContext';
+import { useData } from '../context/DataContext';
 import { QUESTIONNAIRE_ITEMS, ANSWER_OPTIONS } from '../data/questionnaire';
 import { scoreQuestionnaire } from '../utils/scoring';
+import { toDateKey } from '../utils/dateUtils';
 
 export default function QuestionnaireScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
+  const { saveAssessment } = useData();
 
   // Current question index (0 to 4)
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -32,6 +35,9 @@ export default function QuestionnaireScreen({ navigation }) {
 
   // Shows results view after question 5 is submitted
   const [showResult, setShowResult] = useState(false);
+
+  // Guard to ensure assessment is persisted only once per completion
+  const hasSavedRef = useRef(false);
 
   // Transition animations
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -68,9 +74,22 @@ export default function QuestionnaireScreen({ navigation }) {
     setAnswers(updated);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!isAnswered) return;
     if (isLastQuestion) {
+      if (!hasSavedRef.current) {
+        hasSavedRef.current = true;
+        try {
+          await saveAssessment({
+            date: toDateKey(new Date()),
+            answers,
+            score: scoringResult.percentage,
+            category: scoringResult.category,
+          });
+        } catch (error) {
+          console.error('[QuestionnaireScreen] Failed to save assessment:', error);
+        }
+      }
       setShowResult(true);
     } else {
       animateToQuestion(currentIndex + 1);
