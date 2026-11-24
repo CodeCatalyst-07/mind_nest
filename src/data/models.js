@@ -14,6 +14,7 @@
  *   energy: number,         // Energy level from 1 (Exhausted) to 5 (Energized)
  *   sleepHours: number,     // Hours of sleep (e.g. 7.5)
  *   note: string,           // Optional user thoughts or reflections
+ *   tags: string[],         // Optional student context tags (e.g. ["Studies", "Sleep"])
  *   createdAt: string       // ISO timestamp of creation
  * }
  *
@@ -75,6 +76,7 @@ export function createCheckIn({
   energy = 3,
   sleepHours = 7,
   note = '',
+  tags = [],
   createdAt,
 } = {}) {
   return {
@@ -84,6 +86,7 @@ export function createCheckIn({
     energy: Math.max(1, Math.min(5, Number(energy) || 3)),
     sleepHours: Math.max(0, Number(sleepHours) || 0),
     note: typeof note === 'string' ? note.trim() : '',
+    tags: Array.isArray(tags) ? tags : [],
     createdAt: createdAt || new Date().toISOString(),
   };
 }

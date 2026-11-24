@@ -49,22 +49,26 @@ export function generateDemoCheckIns(days = 14) {
     let mood;
     let energy;
     let note;
+    let tags;
 
     if (sleepHours < 6) {
       // Lower sleep loosely correlates with lower energy and mood
       mood = Math.random() > 0.4 ? 2 : 1;
       energy = Math.random() > 0.3 ? 2 : 1;
       note = LOW_MOOD_NOTES[index % LOW_MOOD_NOTES.length];
+      tags = ['Studies', 'Sleep'];
     } else if (sleepHours <= 7.5) {
       // Moderate sleep leads to average to good mood
       mood = Math.random() > 0.4 ? 4 : 3;
       energy = Math.random() > 0.5 ? 4 : 3;
       note = MID_MOOD_NOTES[index % MID_MOOD_NOTES.length];
+      tags = index % 2 === 0 ? ['Friends', 'Studies'] : ['Health', 'Exercise'];
     } else {
       // Good sleep leads to high mood and energy
       mood = Math.random() > 0.3 ? 5 : 4;
       energy = Math.random() > 0.3 ? 5 : 4;
       note = HIGH_MOOD_NOTES[index % HIGH_MOOD_NOTES.length];
+      tags = ['Exercise', 'Friends', 'Sleep'];
     }
 
     const checkIn = createCheckIn({
@@ -73,6 +77,7 @@ export function generateDemoCheckIns(days = 14) {
       energy,
       sleepHours,
       note,
+      tags,
       createdAt: new Date(`${dateKey}T21:00:00.000Z`).toISOString(),
     });
 
