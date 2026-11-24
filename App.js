@@ -1,8 +1,8 @@
 /**
  * App.js
  * Purpose: Application root entry point.
- * Preloads Google Nunito fonts, initializes the ThemeProvider and NavigationContainer,
- * and sets the dynamic StatusBar style.
+ * Preloads Google Nunito fonts, initializes ThemeProvider, DataProvider,
+ * and NavigationContainer, and ensures nothing renders until fonts & data finish loading.
  */
 
 import React from 'react';
@@ -16,11 +16,18 @@ import {
 } from '@expo-google-fonts/nunito';
 
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { DataProvider, useData } from './src/context/DataContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
-// Inner component that consumes useTheme so it can react to light/dark changes
+// Inner component that consumes both theme and data contexts
 function MainContent() {
   const { isDark } = useTheme();
+  const { isLoading } = useData();
+
+  // Keep showing nothing (or splash) until data has finished loading from AsyncStorage
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <NavigationContainer>
@@ -43,10 +50,12 @@ export default function App() {
     return null;
   }
 
-  // 3. Wrap entire app with ThemeProvider so all children can access colors and fonts
+  // 3. Wrap entire app with ThemeProvider and DataProvider
   return (
     <ThemeProvider>
-      <MainContent />
+      <DataProvider>
+        <MainContent />
+      </DataProvider>
     </ThemeProvider>
   );
 }
