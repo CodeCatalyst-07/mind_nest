@@ -22,6 +22,8 @@ import { useData } from '../context/DataContext';
 import { QUESTIONNAIRE_ITEMS, ANSWER_OPTIONS } from '../data/questionnaire';
 import { scoreQuestionnaire, getSupportiveNote } from '../utils/scoring';
 import { toDateKey } from '../utils/dateUtils';
+import { haptics } from '../utils/haptics';
+import { Alert } from 'react-native';
 
 export default function QuestionnaireScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
@@ -51,6 +53,29 @@ export default function QuestionnaireScreen({ navigation }) {
   // Computed score breakdown
   const scoringResult = scoreQuestionnaire(answers);
 
+  // Check if student has answered at least one question
+  const hasAnsweredAny = answers.some((a) => a !== null);
+
+  const handleClose = () => {
+    if (showResult || !hasAnsweredAny) {
+      navigation.goBack();
+      return;
+    }
+
+    Alert.alert(
+      'Discard answers?',
+      'You have answered some questions that will be lost.',
+      [
+        { text: 'Keep Answering', style: 'cancel' },
+        {
+          text: 'Discard',
+          style: 'destructive',
+          onPress: () => navigation.goBack(),
+        },
+      ]
+    );
+  };
+
   /**
    * Smoothly animates question content out, updates state, and animates new content in.
    */
@@ -69,6 +94,7 @@ export default function QuestionnaireScreen({ navigation }) {
   };
 
   const handleSelectOption = (value) => {
+    haptics.selection();
     const updated = [...answers];
     updated[currentIndex] = value;
     setAnswers(updated);
@@ -77,6 +103,7 @@ export default function QuestionnaireScreen({ navigation }) {
   const handleNext = async () => {
     if (!isAnswered) return;
     if (isLastQuestion) {
+      haptics.success();
       if (!hasSavedRef.current) {
         hasSavedRef.current = true;
         try {
@@ -92,11 +119,13 @@ export default function QuestionnaireScreen({ navigation }) {
       }
       setShowResult(true);
     } else {
+      haptics.light();
       animateToQuestion(currentIndex + 1);
     }
   };
 
   const handleBack = () => {
+    haptics.light();
     if (currentIndex > 0) {
       animateToQuestion(currentIndex - 1);
     }
@@ -107,7 +136,7 @@ export default function QuestionnaireScreen({ navigation }) {
       {/* Top Bar */}
       <View style={[styles.topBar, { borderBottomColor: colors.border }]}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={handleClose}
           style={styles.closeButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityLabel="Close questionnaire"
