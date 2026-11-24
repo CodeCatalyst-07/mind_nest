@@ -50,8 +50,7 @@ export default function AppNavigator() {
         name="Questionnaire"
         component={QuestionnaireScreen}
         options={{
-          title: 'Weekly Questionnaire',
-          headerBackTitle: 'Back',
+          headerShown: false,
         }}
       />
     </Stack.Navigator>
