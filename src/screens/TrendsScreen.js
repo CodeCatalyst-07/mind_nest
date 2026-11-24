@@ -12,6 +12,7 @@ import AppText from '../components/AppText';
 import SegmentedControl from '../components/SegmentedControl';
 import StatCard from '../components/StatCard';
 import MoodLineChart from '../components/MoodLineChart';
+import MoodHeatmap from '../components/MoodHeatmap';
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import {
@@ -87,6 +88,9 @@ export default function TrendsScreen() {
 
       {/* Mood Line Chart */}
       <MoodLineChart checkIns={filteredCheckIns} />
+
+      {/* Monthly Mood Heatmap Calendar */}
+      <MoodHeatmap checkIns={checkIns} />
     </Screen>
   );
 }
