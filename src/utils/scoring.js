@@ -88,6 +88,20 @@ export function getCategoryDetails(category) {
 }
 
 /**
+ * Returns a gentle encouragement note for lower score categories.
+ * Encourages college students to reach out to campus resources or trusted adults.
+ *
+ * @param {string} category
+ * @returns {string|null}
+ */
+export function getSupportiveNote(category) {
+  if (category === 'Low' || category === 'Needs attention') {
+    return 'If you are feeling overwhelmed, remember that you do not have to carry this alone. Please consider talking to a campus counselor, academic advisor, or a trusted adult or friend.';
+  }
+  return null;
+}
+
+/**
  * Comprehensive helper that computes the full scoring breakdown from raw answers.
  *
  * @param {number[]} answers

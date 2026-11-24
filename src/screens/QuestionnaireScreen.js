@@ -20,7 +20,7 @@ import ScoreGauge from '../components/ScoreGauge';
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import { QUESTIONNAIRE_ITEMS, ANSWER_OPTIONS } from '../data/questionnaire';
-import { scoreQuestionnaire } from '../utils/scoring';
+import { scoreQuestionnaire, getSupportiveNote } from '../utils/scoring';
 import { toDateKey } from '../utils/dateUtils';
 
 export default function QuestionnaireScreen({ navigation }) {
@@ -161,6 +161,31 @@ export default function QuestionnaireScreen({ navigation }) {
               {scoringResult.description}
             </AppText>
           </View>
+
+          {/* Supportive Note for Low Categories (Needs Attention & Low) */}
+          {scoringResult.isLowCategory ? (
+            <Card
+              style={[
+                styles.supportCard,
+                {
+                  borderColor: scoringResult.color,
+                  backgroundColor: scoringResult.color + '15',
+                },
+              ]}
+            >
+              <View style={styles.supportRow}>
+                <Ionicons name="heart-circle" size={24} color={scoringResult.color} />
+                <View style={styles.supportTextContainer}>
+                  <AppText variant="heading" style={{ color: scoringResult.color, fontSize: 16 }}>
+                    Reach Out & Connect
+                  </AppText>
+                  <AppText variant="caption" color={colors.text} style={{ marginTop: 4, lineHeight: 18 }}>
+                    {getSupportiveNote(scoringResult.category)}
+                  </AppText>
+                </View>
+              </View>
+            </Card>
+          ) : null}
 
           {/* Non-Diagnostic Disclaimer Card */}
           <Card style={[styles.disclaimerCard, { borderColor: colors.border }]}>
@@ -356,6 +381,20 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 14,
     marginTop: 10,
+  },
+  supportCard: {
+    width: '100%',
+    padding: 16,
+    borderWidth: 1.5,
+    marginBottom: 6,
+  },
+  supportRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  supportTextContainer: {
+    flex: 1,
+    marginLeft: 12,
   },
   disclaimerRow: {
     flexDirection: 'row',
