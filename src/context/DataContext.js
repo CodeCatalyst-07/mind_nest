@@ -9,7 +9,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { STORAGE_KEYS, saveData, loadData, removeData } from '../utils/storage';
 import { toDateKey } from '../utils/dateUtils';
 import { createCheckIn, createAssessment, DEFAULT_SETTINGS } from '../data/models';
-import { generateDemoCheckIns } from '../data/demoData';
+import { generateDemoCheckIns, generateDemoAssessments } from '../data/demoData';
 
 const DataContext = createContext();
 
@@ -161,15 +161,23 @@ export function DataProvider({ children }) {
   }, [getCheckInByDate]);
 
   /**
-   * Loads a realistic N-day demo set of check-ins into memory and AsyncStorage.
+   * Loads a realistic demo set of check-ins and weekly assessments into memory and AsyncStorage.
    *
    * @param {number} [days=14]
    */
   const loadDemoData = useCallback(async (days = 14) => {
     const demoSet = generateDemoCheckIns(days);
+    const demoAssessments = generateDemoAssessments(4);
+
     setCheckIns(demoSet);
-    await saveData(STORAGE_KEYS.CHECKINS, demoSet);
-    return demoSet;
+    setAssessments(demoAssessments);
+
+    await Promise.all([
+      saveData(STORAGE_KEYS.CHECKINS, demoSet),
+      saveData(STORAGE_KEYS.ASSESSMENTS, demoAssessments),
+    ]);
+
+    return { checkIns: demoSet, assessments: demoAssessments };
   }, []);
 
   const value = {

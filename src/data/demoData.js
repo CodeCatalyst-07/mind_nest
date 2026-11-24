@@ -5,8 +5,9 @@
  * sleep duration, energy level, and mood, accompanied by relatable college notes.
  */
 
-import { getLastNDays } from '../utils/dateUtils';
-import { createCheckIn } from './models';
+import { getLastNDays, toDateKey } from '../utils/dateUtils';
+import { createCheckIn, createAssessment } from './models';
+import { scoreQuestionnaire } from '../utils/scoring';
 
 // Sample relatable student reflections for varying mood states
 const LOW_MOOD_NOTES = [
@@ -86,4 +87,44 @@ export function generateDemoCheckIns(days = 14) {
 
   // Return with newest dates first so lists display newest records at the top
   return checkIns.reverse();
+}
+
+/**
+ * Generates 4 weekly historical assessments spaced over the last 4 weeks.
+ * Displays varied realistic scores across different WHO-5 well-being tiers.
+ *
+ * @param {number} [count=4]
+ * @returns {object[]} Array of Assessment objects (newest first)
+ */
+export function generateDemoAssessments(count = 4) {
+  const sampleAnswers = [
+    [4, 4, 5, 4, 4], // Score 84% - Thriving (most recent)
+    [4, 3, 4, 3, 3], // Score 68% - Doing okay (1 week ago)
+    [2, 2, 2, 1, 2], // Score 36% - Needs attention (2 weeks ago)
+    [3, 3, 2, 3, 3], // Score 56% - Doing okay (3 weeks ago)
+  ];
+
+  const assessments = [];
+  const now = new Date();
+
+  for (let i = 0; i < Math.min(count, sampleAnswers.length); i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i * 7); // Spaced by 7 days
+    const dateKey = toDateKey(d);
+
+    const answers = sampleAnswers[i];
+    const scored = scoreQuestionnaire(answers);
+
+    assessments.push(
+      createAssessment({
+        date: dateKey,
+        answers,
+        score: scored.percentage,
+        category: scored.category,
+        createdAt: new Date(`${dateKey}T18:00:00.000Z`).toISOString(),
+      })
+    );
+  }
+
+  return assessments;
 }
