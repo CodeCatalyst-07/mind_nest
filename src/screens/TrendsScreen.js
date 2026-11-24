@@ -2,7 +2,7 @@
  * src/screens/TrendsScreen.js
  * Purpose: Tab screen displaying student mood trends, weekly averages, and insights.
  * Features range switching (7 Days vs 30 Days), count-up summary cards, SVG charts,
- * pattern reflections, and recent check-in history with delete confirmation.
+ * pattern reflections, recent check-in history, and a friendly empty state.
  */
 
 import React, { useState } from 'react';
@@ -17,6 +17,7 @@ import MoodHeatmap from '../components/MoodHeatmap';
 import SleepBarChart from '../components/SleepBarChart';
 import TagFrequencyChart from '../components/TagFrequencyChart';
 import AssessmentTrendChart from '../components/AssessmentTrendChart';
+import EmptyState from '../components/EmptyState';
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import {
@@ -34,7 +35,7 @@ const RANGE_OPTIONS = [
   { label: 'Last 30 Days', value: 30 },
 ];
 
-export default function TrendsScreen() {
+export default function TrendsScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
   const { checkIns, assessments, deleteCheckIn } = useData();
   const [range, setRange] = useState(7);
@@ -73,151 +74,145 @@ export default function TrendsScreen() {
 
   return (
     <Screen scrollable>
-      {/* Header & Range Switcher */}
+      {/* Header */}
       <View style={styles.header}>
         <AppText variant="title">Trends & Insights</AppText>
         <AppText variant="body" color={colors.mutedText} style={{ marginTop: spacing.xs }}>
           See your well-being patterns over time and notice what helps you thrive.
         </AppText>
 
-        <SegmentedControl
-          options={RANGE_OPTIONS}
-          selectedValue={range}
-          onSelect={setRange}
-          style={{ marginTop: spacing.md }}
+        {checkIns.length > 0 && (
+          <SegmentedControl
+            options={RANGE_OPTIONS}
+            selectedValue={range}
+            onSelect={setRange}
+            style={{ marginTop: spacing.md }}
+          />
+        )}
+      </View>
+
+      {/* When no check-ins exist, show dedicated Empty State */}
+      {checkIns.length === 0 ? (
+        <EmptyState
+          icon="📊"
+          title="No Check-ins Yet"
+          message="Complete your daily check-in to unlock your mood trajectory, sleep graphs, and personal insights."
+          buttonTitle="Log Today's Mood"
+          onPress={() => navigation?.navigate('CheckIn')}
         />
-      </View>
-
-      {/* 3 Summary Stat Cards */}
-      <View style={[styles.statsRow, { gap: spacing.sm }]}>
-        <StatCard
-          title="Avg Mood"
-          value={avgMood}
-          decimals={1}
-          icon={moodEmoji}
-          subtitle="out of 5"
-        />
-        <StatCard
-          title="Avg Sleep"
-          value={avgSleep}
-          decimals={1}
-          unit="h"
-          icon="🌙"
-          subtitle="per night"
-        />
-        <StatCard
-          title="Streak"
-          value={streak}
-          decimals={0}
-          unit="days"
-          icon="🔥"
-          subtitle={streak > 0 ? 'keep going!' : 'start today'}
-        />
-      </View>
-
-      {/* Mood Line Chart */}
-      <MoodLineChart checkIns={filteredCheckIns} />
-
-      {/* Monthly Mood Heatmap Calendar */}
-      <MoodHeatmap checkIns={checkIns} />
-
-      {/* Sleep Bar Chart (Coloured by Mood) */}
-      <SleepBarChart checkIns={filteredCheckIns} />
-
-      {/* Tag Frequency Horizontal Bars */}
-      <TagFrequencyChart checkIns={filteredCheckIns} />
-
-      {/* Well-Being Score Trend (WHO-5 Assessments) */}
-      <AssessmentTrendChart assessments={assessments} />
-
-      {/* Insights & Observations Section */}
-      <View style={styles.sectionHeader}>
-        <AppText variant="subheading" weight="bold">
-          Reflective Patterns & Insights
-        </AppText>
-        <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
-          Gentle observations from your self-check logs.
-        </AppText>
-      </View>
-
-      <View style={[styles.insightsList, { gap: spacing.sm }]}>
-        {insightsList.map((item) => (
-          <View
-            key={`insight-${item.id}`}
-            style={[
-              styles.insightCard,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-                borderRadius: borderRadius.lg,
-                padding: spacing.md,
-              },
-            ]}
-            accessible
-            accessibilityRole="text"
-            accessibilityLabel={`${item.title}: ${item.text}`}
-          >
-            <View
-              style={[
-                styles.iconBadge,
-                {
-                  backgroundColor: colors.primaryLight,
-                  borderRadius: borderRadius.md,
-                },
-              ]}
-            >
-              <AppText variant="title">{item.icon}</AppText>
-            </View>
-
-            <View style={styles.insightContent}>
-              <AppText variant="body" weight="bold" color={colors.text}>
-                {item.title}
-              </AppText>
-              <AppText
-                variant="bodySmall"
-                color={colors.mutedText}
-                style={{ marginTop: 4, lineHeight: 18 }}
-              >
-                {item.text}
-              </AppText>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      {/* Recent Check-ins List */}
-      <View style={styles.sectionHeader}>
-        <AppText variant="subheading" weight="bold">
-          Recent Check-ins
-        </AppText>
-        <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
-          Your latest recorded self-checks.
-        </AppText>
-      </View>
-
-      {recentCheckIns.length === 0 ? (
-        <View
-          style={[
-            styles.emptyCheckIns,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderRadius: borderRadius.lg,
-              padding: spacing.md,
-            },
-          ]}
-        >
-          <AppText variant="bodySmall" color={colors.mutedText} style={{ textAlign: 'center' }}>
-            No check-in history yet.
-          </AppText>
-        </View>
       ) : (
-        <View style={[styles.recentList, { gap: spacing.sm }]}>
-          {recentCheckIns.map((item) => (
+        <>
+          {/* 3 Summary Stat Cards */}
+          <View style={[styles.statsRow, { gap: spacing.sm }]}>
+            <StatCard
+              title="Avg Mood"
+              value={avgMood}
+              decimals={1}
+              icon={moodEmoji}
+              subtitle="out of 5"
+            />
+            <StatCard
+              title="Avg Sleep"
+              value={avgSleep}
+              decimals={1}
+              unit="h"
+              icon="🌙"
+              subtitle="per night"
+            />
+            <StatCard
+              title="Streak"
+              value={streak}
+              decimals={0}
+              unit="days"
+              icon="🔥"
+              subtitle={streak > 0 ? 'keep going!' : 'start today'}
+            />
+          </View>
+
+          {/* Mood Line Chart */}
+          <MoodLineChart checkIns={filteredCheckIns} />
+
+          {/* Monthly Mood Heatmap Calendar */}
+          <MoodHeatmap checkIns={checkIns} />
+
+          {/* Sleep Bar Chart (Coloured by Mood) */}
+          <SleepBarChart checkIns={filteredCheckIns} />
+
+          {/* Tag Frequency Horizontal Bars */}
+          <TagFrequencyChart checkIns={filteredCheckIns} />
+
+          {/* Well-Being Score Trend (WHO-5 Assessments) */}
+          <AssessmentTrendChart assessments={assessments} />
+
+          {/* Insights & Observations Section */}
+          <View style={styles.sectionHeader}>
+            <AppText variant="subheading" weight="bold">
+              Reflective Patterns & Insights
+            </AppText>
+            <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+              Gentle observations from your self-check logs.
+            </AppText>
+          </View>
+
+          <View style={[styles.insightsList, { gap: spacing.sm }]}>
+            {insightsList.map((item) => (
+              <View
+                key={`insight-${item.id}`}
+                style={[
+                  styles.insightCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    borderRadius: borderRadius.lg,
+                    padding: spacing.md,
+                  },
+                ]}
+                accessible
+                accessibilityRole="text"
+                accessibilityLabel={`${item.title}: ${item.text}`}
+              >
+                <View
+                  style={[
+                    styles.iconBadge,
+                    {
+                      backgroundColor: colors.primaryLight,
+                      borderRadius: borderRadius.md,
+                    },
+                  ]}
+                >
+                  <AppText variant="title">{item.icon}</AppText>
+                </View>
+
+                <View style={styles.insightContent}>
+                  <AppText variant="body" weight="bold" color={colors.text}>
+                    {item.title}
+                  </AppText>
+                  <AppText
+                    variant="bodySmall"
+                    color={colors.mutedText}
+                    style={{ marginTop: 4, lineHeight: 18 }}
+                  >
+                    {item.text}
+                  </AppText>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {/* Recent Check-ins List */}
+          <View style={styles.sectionHeader}>
+            <AppText variant="subheading" weight="bold">
+              Recent Check-ins
+            </AppText>
+            <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+              Your latest recorded self-checks.
+            </AppText>
+          </View>
+
+          {recentCheckIns.length === 0 ? (
             <View
-              key={`recent-${item.id}`}
               style={[
-                styles.recentItem,
+                styles.emptyCheckIns,
                 {
                   backgroundColor: colors.card,
                   borderColor: colors.border,
@@ -226,73 +221,94 @@ export default function TrendsScreen() {
                 },
               ]}
             >
-              <View style={styles.recentLeft}>
+              <AppText variant="bodySmall" color={colors.mutedText} style={{ textAlign: 'center' }}>
+                No check-in history yet.
+              </AppText>
+            </View>
+          ) : (
+            <View style={[styles.recentList, { gap: spacing.sm }]}>
+              {recentCheckIns.map((item) => (
                 <View
+                  key={`recent-${item.id}`}
                   style={[
-                    styles.recentEmojiBox,
+                    styles.recentItem,
                     {
-                      backgroundColor: colors.primaryLight,
-                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.card,
+                      borderColor: colors.border,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
                     },
                   ]}
                 >
-                  <AppText variant="title">{getMoodEmoji(item.mood)}</AppText>
-                </View>
-
-                <View style={styles.recentMeta}>
-                  <AppText variant="bodySmall" weight="bold">
-                    {formatDisplayDate(item.date)}
-                  </AppText>
-                  <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
-                    Mood: {item.mood}/5 • Sleep: {item.sleepHours}h • Energy: {item.energy}/5
-                  </AppText>
-
-                  {item.note ? (
-                    <AppText
-                      variant="caption"
-                      color={colors.text}
-                      style={styles.recentNote}
-                      numberOfLines={2}
+                  <View style={styles.recentLeft}>
+                    <View
+                      style={[
+                        styles.recentEmojiBox,
+                        {
+                          backgroundColor: colors.primaryLight,
+                          borderRadius: borderRadius.md,
+                        },
+                      ]}
                     >
-                      "{item.note}"
-                    </AppText>
-                  ) : null}
-
-                  {Array.isArray(item.tags) && item.tags.length > 0 ? (
-                    <View style={styles.recentTags}>
-                      {item.tags.map((t) => (
-                        <View
-                          key={`rt-${item.id}-${t}`}
-                          style={[
-                            styles.recentTagChip,
-                            {
-                              backgroundColor: colors.border,
-                              borderRadius: borderRadius.xs,
-                            },
-                          ]}
-                        >
-                          <AppText variant="caption" color={colors.mutedText} style={{ fontSize: 10 }}>
-                            {t}
-                          </AppText>
-                        </View>
-                      ))}
+                      <AppText variant="title">{getMoodEmoji(item.mood)}</AppText>
                     </View>
-                  ) : null}
-                </View>
-              </View>
 
-              <TouchableOpacity
-                onPress={() => handleDelete(item)}
-                style={styles.deleteButton}
-                activeOpacity={0.6}
-                accessibilityRole="button"
-                accessibilityLabel={`Delete check-in for ${formatDisplayDate(item.date)}`}
-              >
-                <Ionicons name="trash-outline" size={20} color={colors.mutedText} />
-              </TouchableOpacity>
+                    <View style={styles.recentMeta}>
+                      <AppText variant="bodySmall" weight="bold">
+                        {formatDisplayDate(item.date)}
+                      </AppText>
+                      <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+                        Mood: {item.mood}/5 • Sleep: {item.sleepHours}h • Energy: {item.energy}/5
+                      </AppText>
+
+                      {item.note ? (
+                        <AppText
+                          variant="caption"
+                          color={colors.text}
+                          style={styles.recentNote}
+                          numberOfLines={2}
+                        >
+                          "{item.note}"
+                        </AppText>
+                      ) : null}
+
+                      {Array.isArray(item.tags) && item.tags.length > 0 ? (
+                        <View style={styles.recentTags}>
+                          {item.tags.map((t) => (
+                            <View
+                              key={`rt-${item.id}-${t}`}
+                              style={[
+                                styles.recentTagChip,
+                                {
+                                  backgroundColor: colors.border,
+                                  borderRadius: borderRadius.xs,
+                                },
+                              ]}
+                            >
+                              <AppText variant="caption" color={colors.mutedText} style={{ fontSize: 10 }}>
+                                {t}
+                              </AppText>
+                            </View>
+                          ))}
+                        </View>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => handleDelete(item)}
+                    style={styles.deleteButton}
+                    activeOpacity={0.6}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Delete check-in for ${formatDisplayDate(item.date)}`}
+                  >
+                    <Ionicons name="trash-outline" size={20} color={colors.mutedText} />
+                  </TouchableOpacity>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
+          )}
+        </>
       )}
     </Screen>
   );
