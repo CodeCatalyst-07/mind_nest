@@ -17,6 +17,7 @@ import AppButton from '../components/AppButton';
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import { getMoodByValue } from '../data/moods';
+import { getCategoryDetails } from '../utils/scoring';
 
 function getTimeGreeting() {
   const hour = new Date().getHours();
@@ -27,11 +28,28 @@ function getTimeGreeting() {
 
 export default function HomeScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
-  const { checkIns, getTodayCheckIn } = useData();
+  const { checkIns, assessments, getTodayCheckIn } = useData();
 
   const todayCheckIn = getTodayCheckIn();
   const todayMood = todayCheckIn ? getMoodByValue(todayCheckIn.mood) : null;
   const moodColor = todayMood ? colors.mood[todayMood.colorKey] : colors.primary;
+
+  // Latest weekly assessment logic
+  const latestAssessment = assessments && assessments.length > 0 ? assessments[0] : null;
+  let isDue = true;
+  let daysAgo = null;
+
+  if (latestAssessment && latestAssessment.date) {
+    const todayTimestamp = new Date().setHours(0, 0, 0, 0);
+    const assessmentTimestamp = new Date(latestAssessment.date).setHours(0, 0, 0, 0);
+    const diffMs = todayTimestamp - assessmentTimestamp;
+    daysAgo = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    isDue = daysAgo >= 7;
+  }
+
+  const categoryDetails = latestAssessment
+    ? getCategoryDetails(latestAssessment.category)
+    : null;
 
   return (
     <Screen scrollable>
@@ -136,6 +154,83 @@ export default function HomeScreen({ navigation }) {
           ) : null}
         </Card>
       )}
+
+      {/* Weekly Check Assessment Card */}
+      <Card style={[styles.weeklyCard, isDue && { borderColor: colors.accent, borderWidth: 1.5 }]}>
+        <View style={styles.weeklyHeader}>
+          <View style={styles.weeklyBadgeRow}>
+            {isDue ? (
+              <View style={[styles.dueBadge, { backgroundColor: colors.accent + '20', borderRadius: borderRadius.round }]}>
+                <Ionicons name="time-outline" size={14} color={colors.accent} />
+                <AppText variant="caption" style={{ color: colors.accent, fontWeight: '700', marginLeft: 4 }}>
+                  WEEKLY CHECK DUE
+                </AppText>
+              </View>
+            ) : (
+              <View style={[styles.dueBadge, { backgroundColor: '#10B98120', borderRadius: borderRadius.round }]}>
+                <Ionicons name="checkmark-done" size={14} color="#10B981" />
+                <AppText variant="caption" style={{ color: '#10B981', fontWeight: '700', marginLeft: 4 }}>
+                  WEEKLY CHECK CURRENT
+                </AppText>
+              </View>
+            )}
+          </View>
+
+          {latestAssessment ? (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Questionnaire')}
+              style={styles.retakeButton}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Retake weekly assessment"
+            >
+              <AppText variant="caption" color={colors.primary} style={{ fontWeight: '600' }}>
+                {isDue ? 'Take check' : 'Retake'}
+              </AppText>
+              <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        {latestAssessment ? (
+          <View style={styles.weeklyBody}>
+            <View style={styles.weeklyScoreRow}>
+              <View style={[styles.scoreBubble, { backgroundColor: categoryDetails.color + '20' }]}>
+                <AppText style={[styles.scorePercentText, { color: categoryDetails.color }]}>
+                  {latestAssessment.score}%
+                </AppText>
+              </View>
+              <View style={styles.weeklyScoreText}>
+                <AppText variant="heading" style={{ color: categoryDetails.color }}>
+                  {latestAssessment.category}
+                </AppText>
+                <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+                  {daysAgo === 0
+                    ? 'Completed today'
+                    : daysAgo === 1
+                    ? 'Completed yesterday'
+                    : `Completed ${daysAgo} days ago`}
+                  {isDue ? ' • Time for your check-in!' : ` • Next in ${7 - daysAgo} days`}
+                </AppText>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.weeklyEmptyBody}>
+            <View style={styles.weeklyTextContainer}>
+              <AppText variant="heading">WHO-5 Well-Being Check</AppText>
+              <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+                Take your 5-question weekly check to gauge mental vitality.
+              </AppText>
+            </View>
+            <AppButton
+              title="Start Weekly Check"
+              onPress={() => navigation.navigate('Questionnaire')}
+              style={{ marginTop: spacing.md }}
+            />
+          </View>
+        )}
+      </Card>
 
       {/* Storage Status Overview */}
       <Card style={{ backgroundColor: colors.primaryLight + '35' }}>
@@ -278,5 +373,59 @@ const styles = StyleSheet.create({
   },
   actionTextContainer: {
     flex: 1,
+  },
+  weeklyCard: {
+    padding: 16,
+    marginBottom: 16,
+  },
+  weeklyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  weeklyBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dueBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  retakeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  weeklyBody: {
+    marginTop: 4,
+  },
+  weeklyScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  scoreBubble: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  scorePercentText: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  weeklyScoreText: {
+    flex: 1,
+  },
+  weeklyEmptyBody: {
+    paddingTop: 4,
+  },
+  weeklyTextContainer: {
+    marginBottom: 2,
   },
 });
