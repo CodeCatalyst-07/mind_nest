@@ -301,6 +301,7 @@ export default function TrendsScreen({ navigation }) {
                     activeOpacity={0.6}
                     accessibilityRole="button"
                     accessibilityLabel={`Delete check-in for ${formatDisplayDate(item.date)}`}
+                    accessibilityHint="Permanently removes this daily check-in from your device"
                   >
                     <Ionicons name="trash-outline" size={20} color={colors.mutedText} />
                   </TouchableOpacity>

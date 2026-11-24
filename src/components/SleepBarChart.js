@@ -62,7 +62,7 @@ export default function SleepBarChart({ checkIns = [] }) {
       }}
       accessible
       accessibilityRole="image"
-      accessibilityLabel={`Sleep duration chart for ${checkIns.length} check-ins, colored by daily mood`}
+      accessibilityLabel={`Sleep duration bar chart for ${checkIns.length} recorded night${checkIns.length === 1 ? '' : 's'}, colored by mood level with a 7 hour target line`}
     >
       <View style={styles.header}>
         <AppText variant="subheading" weight="bold">

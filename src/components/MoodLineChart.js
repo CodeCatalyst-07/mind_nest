@@ -109,7 +109,7 @@ export default function MoodLineChart({ checkIns = [] }) {
       }}
       accessible
       accessibilityRole="image"
-      accessibilityLabel={`Mood trajectory chart showing ${checkIns.length} check-ins`}
+      accessibilityLabel={`Mood trajectory chart showing ${checkIns.length} check-in${checkIns.length === 1 ? '' : 's'} on a 1 to 5 scale`}
     >
       <View style={styles.header}>
         <AppText variant="subheading" weight="bold">

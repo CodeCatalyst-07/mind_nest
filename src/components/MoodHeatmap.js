@@ -113,7 +113,8 @@ export default function MoodHeatmap({ checkIns = [] }) {
 
           const hasMood = cell.mood !== undefined;
           const cellColor = hasMood ? moodColorMap[cell.mood] : colors.border;
-          const textColor = hasMood ? '#FFFFFF' : colors.mutedText;
+          // Use dark text on yellow (mood 3) for optimal contrast, white on darker moods
+          const textColor = hasMood ? (cell.mood === 3 ? '#1E293B' : '#FFFFFF') : colors.mutedText;
 
           return (
             <View
@@ -126,11 +127,12 @@ export default function MoodHeatmap({ checkIns = [] }) {
                   borderRadius: borderRadius.sm,
                   borderColor: cell.isToday ? colors.primary : 'transparent',
                   borderWidth: cell.isToday ? 2 : 0,
-                  opacity: hasMood ? 1 : 0.35,
+                  opacity: hasMood ? 1 : 0.4,
                 },
               ]}
               accessible
-              accessibilityLabel={`${monthName} ${cell.dayNumber}, mood: ${cell.mood || 'unlogged'}`}
+              accessibilityRole="text"
+              accessibilityLabel={`${monthName} ${cell.dayNumber}, mood rating: ${cell.mood ? cell.mood + ' out of 5' : 'unlogged'}`}
             >
               <AppText
                 variant="caption"

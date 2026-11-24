@@ -88,7 +88,7 @@ export default function AssessmentTrendChart({ assessments = [] }) {
       }}
       accessible
       accessibilityRole="image"
-      accessibilityLabel={`WHO-5 assessment trend chart showing ${sorted.length} recorded tests`}
+      accessibilityLabel={`WHO-5 well-being assessment score trajectory showing ${sorted.length} weekly self-checks with category threshold guidelines`}
     >
       <View style={styles.header}>
         <AppText variant="subheading" weight="bold">
