@@ -2,7 +2,7 @@
  * src/screens/BreathingScreen.js
  * Purpose: Full-screen guided breathing timer screen.
  * Manages rhythmic phase countdowns, cycle tracking, phase-change haptics,
- * screen keep-awake during active sessions, and automatic cleanup on unmount.
+ * screen keep-awake during active sessions, and automatic ToolSession logging upon completion.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -11,9 +11,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import Screen from '../components/Screen';
 import AppText from '../components/AppText';
+import Card from '../components/Card';
 import AppButton from '../components/AppButton';
 import BreathingCircle from '../components/BreathingCircle';
 import { useTheme } from '../theme/ThemeContext';
+import { useData } from '../context/DataContext';
 import { BREATHING_PATTERNS, BREATHING_DURATIONS } from '../data/toolkit';
 import { haptics } from '../utils/haptics';
 
@@ -21,6 +23,7 @@ const KEEP_AWAKE_TAG = 'mindnest-breathing';
 
 export default function BreathingScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
+  const { logSession } = useData();
 
   // Setup selections
   const [selectedPattern, setSelectedPattern] = useState(BREATHING_PATTERNS[0]);
@@ -29,6 +32,7 @@ export default function BreathingScreen({ navigation }) {
   // Session run state
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [timerState, setTimerState] = useState({
     phaseIndex: 0,
     phaseSecondsLeft: BREATHING_PATTERNS[0].phases[0].seconds,
@@ -37,6 +41,7 @@ export default function BreathingScreen({ navigation }) {
   });
 
   const intervalRef = useRef(null);
+  const hasLoggedRef = useRef(false);
   const phases = selectedPattern.phases;
   const currentPhase = phases[timerState.phaseIndex] || phases[0];
 
@@ -60,6 +65,18 @@ export default function BreathingScreen({ navigation }) {
     }
   }, [timerState.phaseIndex, isRunning, isPaused]);
 
+  // Trigger session logging when countdown finishes cleanly
+  useEffect(() => {
+    if (timerState.totalSecondsLeft === 0 && !hasLoggedRef.current) {
+      hasLoggedRef.current = true;
+      setIsRunning(false);
+      setIsPaused(false);
+      setIsCompleted(true);
+      haptics.success();
+      logSession('breathing', selectedDurationSec);
+    }
+  }, [timerState.totalSecondsLeft, selectedDurationSec, logSession]);
+
   // 1-second session ticker using functional state updates to avoid stale closures
   useEffect(() => {
     if (!isRunning || isPaused) {
@@ -75,11 +92,8 @@ export default function BreathingScreen({ navigation }) {
         const nextTotalLeft = prev.totalSecondsLeft - 1;
 
         if (nextTotalLeft <= 0) {
-          // Session finished
           clearInterval(intervalRef.current);
           intervalRef.current = null;
-          setIsRunning(false);
-          setIsPaused(false);
           return {
             ...prev,
             totalSecondsLeft: 0,
@@ -138,6 +152,8 @@ export default function BreathingScreen({ navigation }) {
   };
 
   const handleStart = () => {
+    hasLoggedRef.current = false;
+    setIsCompleted(false);
     setTimerState({
       phaseIndex: 0,
       phaseSecondsLeft: phases[0].seconds,
@@ -157,6 +173,17 @@ export default function BreathingScreen({ navigation }) {
     haptics.light();
     setIsRunning(false);
     setIsPaused(false);
+    setTimerState({
+      phaseIndex: 0,
+      phaseSecondsLeft: phases[0].seconds,
+      totalSecondsLeft: selectedDurationSec,
+      cyclesCompleted: 0,
+    });
+  };
+
+  const handleReset = () => {
+    hasLoggedRef.current = false;
+    setIsCompleted(false);
     setTimerState({
       phaseIndex: 0,
       phaseSecondsLeft: phases[0].seconds,
@@ -189,159 +216,209 @@ export default function BreathingScreen({ navigation }) {
         <View style={styles.backButtonPlaceholder} />
       </View>
 
-      {/* Animated Breathing Guide */}
-      <BreathingCircle
-        phaseLabel={isRunning ? (isPaused ? 'Paused' : currentPhase.label) : 'Ready'}
-        action={isRunning ? currentPhase.action : 'idle'}
-        phaseSeconds={currentPhase.seconds}
-        secondsLeft={timerState.phaseSecondsLeft}
-        isRunning={isRunning}
-        isPaused={isPaused}
-      />
-
-      {/* Active Readout (Time Left & Cycles) */}
-      <View style={styles.statsRow}>
-        <View
-          style={[
-            styles.statPill,
-            { backgroundColor: colors.card, borderColor: colors.border, borderRadius: borderRadius.md },
-          ]}
-        >
-          <AppText variant="caption" color={colors.mutedText}>
-            Time Left
-          </AppText>
-          <AppText variant="subheading" weight="bold">
-            {formatTime(isRunning ? timerState.totalSecondsLeft : selectedDurationSec)}
-          </AppText>
-        </View>
-
-        <View
-          style={[
-            styles.statPill,
-            { backgroundColor: colors.card, borderColor: colors.border, borderRadius: borderRadius.md },
-          ]}
-        >
-          <AppText variant="caption" color={colors.mutedText}>
-            Cycles
-          </AppText>
-          <AppText variant="subheading" weight="bold">
-            {timerState.cyclesCompleted}
-          </AppText>
-        </View>
-      </View>
-
-      {/* Pattern & Duration Pickers (shown before session starts) */}
-      {!isRunning ? (
-        <View style={{ marginTop: spacing.md }}>
-          <AppText variant="bodySmall" weight="bold" color={colors.text} style={styles.groupLabel}>
-            Choose a Pattern
-          </AppText>
-          <View style={styles.patternList}>
-            {BREATHING_PATTERNS.map((pattern) => {
-              const isSelected = selectedPattern.id === pattern.id;
-              return (
-                <TouchableOpacity
-                  key={pattern.id}
-                  onPress={() => handleSelectPattern(pattern)}
-                  activeOpacity={0.75}
-                  style={[
-                    styles.patternOption,
-                    {
-                      backgroundColor: isSelected ? colors.primaryLight : colors.card,
-                      borderColor: isSelected ? colors.primary : colors.border,
-                      borderRadius: borderRadius.md,
-                      padding: spacing.sm,
-                    },
-                  ]}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                >
-                  <AppText
-                    variant="bodySmall"
-                    weight="bold"
-                    color={isSelected ? colors.primary : colors.text}
-                  >
-                    {pattern.name}
-                  </AppText>
-                  <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
-                    {pattern.subtitle}
-                  </AppText>
-                </TouchableOpacity>
-              );
-            })}
+      {isCompleted ? (
+        <Card style={[styles.completionCard, { marginTop: spacing.xl }]}>
+          <View
+            style={[
+              styles.completeBadge,
+              { backgroundColor: colors.primaryLight, borderRadius: borderRadius.full },
+            ]}
+          >
+            <AppText style={styles.completeEmoji}>🌬️</AppText>
           </View>
+
+          <AppText variant="title" weight="bold" style={styles.completeTitle}>
+            Well Done
+          </AppText>
 
           <AppText
-            variant="bodySmall"
-            weight="bold"
-            color={colors.text}
-            style={[styles.groupLabel, { marginTop: spacing.md }]}
+            variant="body"
+            color={colors.mutedText}
+            style={[styles.completeMessage, { marginTop: spacing.sm, marginBottom: spacing.lg }]}
           >
-            Duration
+            You took {Math.round(selectedDurationSec / 60)} minute
+            {selectedDurationSec > 60 ? 's' : ''} for yourself with {selectedPattern.name}. Take a
+            moment to notice how calm your shoulders and mind feel right now.
           </AppText>
-          <View style={styles.durationRow}>
-            {BREATHING_DURATIONS.map((dur) => {
-              const isSelected = selectedDurationSec === dur.seconds;
-              return (
-                <TouchableOpacity
-                  key={dur.label}
-                  onPress={() => handleSelectDuration(dur.seconds)}
-                  activeOpacity={0.75}
-                  style={[
-                    styles.durationChip,
-                    {
-                      backgroundColor: isSelected ? colors.primary : colors.card,
-                      borderColor: isSelected ? colors.primary : colors.border,
-                      borderRadius: borderRadius.full,
-                    },
-                  ]}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                >
-                  <AppText
-                    variant="bodySmall"
-                    weight="bold"
-                    color={isSelected ? '#FFFFFF' : colors.text}
-                  >
-                    {dur.label}
-                  </AppText>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-      ) : null}
 
-      {/* Controls */}
-      <View style={[styles.controlsContainer, { marginTop: spacing.lg }]}>
-        {!isRunning ? (
-          <AppButton title="Start Session" onPress={handleStart} variant="primary" />
-        ) : (
-          <View style={styles.activeControlsRow}>
-            <AppButton
-              title={isPaused ? 'Resume' : 'Pause'}
-              onPress={handleTogglePause}
-              variant="secondary"
-              style={{ flex: 1 }}
-            />
-            <AppButton
-              title="Stop"
-              onPress={handleStop}
-              variant="outline"
-              style={{ flex: 1 }}
-            />
-          </View>
-        )}
-      </View>
+          <AppButton
+            title="Back to Toolkit"
+            onPress={() => navigation.goBack()}
+            variant="primary"
+            style={{ width: '100%' }}
+          />
+          <AppButton
+            title="Practice Again"
+            onPress={handleReset}
+            variant="secondary"
+            style={{ width: '100%', marginTop: spacing.sm }}
+          />
+        </Card>
+      ) : (
+        <>
+          {/* Animated Breathing Guide */}
+          <BreathingCircle
+            phaseLabel={isRunning ? (isPaused ? 'Paused' : currentPhase.label) : 'Ready'}
+            action={isRunning ? currentPhase.action : 'idle'}
+            phaseSeconds={currentPhase.seconds}
+            secondsLeft={timerState.phaseSecondsLeft}
+            isRunning={isRunning}
+            isPaused={isPaused}
+          />
 
-      {/* Safety Note */}
-      <AppText
-        variant="caption"
-        color={colors.mutedText}
-        style={{ marginTop: spacing.lg, textAlign: 'center' }}
-      >
-        If you feel dizzy, stop and breathe normally.
-      </AppText>
+          {/* Active Readout (Time Left & Cycles) */}
+          <View style={styles.statsRow}>
+            <View
+              style={[
+                styles.statPill,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderRadius: borderRadius.md,
+                },
+              ]}
+            >
+              <AppText variant="caption" color={colors.mutedText}>
+                Time Left
+              </AppText>
+              <AppText variant="subheading" weight="bold">
+                {formatTime(isRunning ? timerState.totalSecondsLeft : selectedDurationSec)}
+              </AppText>
+            </View>
+
+            <View
+              style={[
+                styles.statPill,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderRadius: borderRadius.md,
+                },
+              ]}
+            >
+              <AppText variant="caption" color={colors.mutedText}>
+                Cycles
+              </AppText>
+              <AppText variant="subheading" weight="bold">
+                {timerState.cyclesCompleted}
+              </AppText>
+            </View>
+          </View>
+
+          {/* Pattern & Duration Pickers (shown before session starts) */}
+          {!isRunning ? (
+            <View style={{ marginTop: spacing.md }}>
+              <AppText variant="bodySmall" weight="bold" color={colors.text} style={styles.groupLabel}>
+                Choose a Pattern
+              </AppText>
+              <View style={styles.patternList}>
+                {BREATHING_PATTERNS.map((pattern) => {
+                  const isSelected = selectedPattern.id === pattern.id;
+                  return (
+                    <TouchableOpacity
+                      key={pattern.id}
+                      onPress={() => handleSelectPattern(pattern)}
+                      activeOpacity={0.75}
+                      style={[
+                        styles.patternOption,
+                        {
+                          backgroundColor: isSelected ? colors.primaryLight : colors.card,
+                          borderColor: isSelected ? colors.primary : colors.border,
+                          borderRadius: borderRadius.md,
+                          padding: spacing.sm,
+                        },
+                      ]}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: isSelected }}
+                    >
+                      <AppText
+                        variant="bodySmall"
+                        weight="bold"
+                        color={isSelected ? colors.primary : colors.text}
+                      >
+                        {pattern.name}
+                      </AppText>
+                      <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+                        {pattern.subtitle}
+                      </AppText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <AppText
+                variant="bodySmall"
+                weight="bold"
+                color={colors.text}
+                style={[styles.groupLabel, { marginTop: spacing.md }]}
+              >
+                Duration
+              </AppText>
+              <View style={styles.durationRow}>
+                {BREATHING_DURATIONS.map((dur) => {
+                  const isSelected = selectedDurationSec === dur.seconds;
+                  return (
+                    <TouchableOpacity
+                      key={dur.label}
+                      onPress={() => handleSelectDuration(dur.seconds)}
+                      activeOpacity={0.75}
+                      style={[
+                        styles.durationChip,
+                        {
+                          backgroundColor: isSelected ? colors.primary : colors.card,
+                          borderColor: isSelected ? colors.primary : colors.border,
+                          borderRadius: borderRadius.full,
+                        },
+                      ]}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: isSelected }}
+                    >
+                      <AppText
+                        variant="bodySmall"
+                        weight="bold"
+                        color={isSelected ? '#FFFFFF' : colors.text}
+                      >
+                        {dur.label}
+                      </AppText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
+          {/* Controls */}
+          <View style={[styles.controlsContainer, { marginTop: spacing.lg }]}>
+            {!isRunning ? (
+              <AppButton title="Start Session" onPress={handleStart} variant="primary" />
+            ) : (
+              <View style={styles.activeControlsRow}>
+                <AppButton
+                  title={isPaused ? 'Resume' : 'Pause'}
+                  onPress={handleTogglePause}
+                  variant="secondary"
+                  style={{ flex: 1 }}
+                />
+                <AppButton
+                  title="Stop"
+                  onPress={handleStop}
+                  variant="outline"
+                  style={{ flex: 1 }}
+                />
+              </View>
+            )}
+          </View>
+
+          {/* Safety Note */}
+          <AppText
+            variant="caption"
+            color={colors.mutedText}
+            style={{ marginTop: spacing.lg, textAlign: 'center' }}
+          >
+            If you feel dizzy, stop and breathe normally.
+          </AppText>
+        </>
+      )}
     </Screen>
   );
 }
@@ -402,5 +479,26 @@ const styles = StyleSheet.create({
   activeControlsRow: {
     flexDirection: 'row',
     gap: 12,
+  },
+  completionCard: {
+    alignItems: 'center',
+    paddingVertical: 28,
+  },
+  completeBadge: {
+    width: 72,
+    height: 72,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  completeEmoji: {
+    fontSize: 36,
+  },
+  completeTitle: {
+    textAlign: 'center',
+  },
+  completeMessage: {
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
