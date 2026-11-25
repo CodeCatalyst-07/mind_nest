@@ -1,19 +1,23 @@
 /**
  * src/screens/BreathingScreen.js
  * Purpose: Full-screen guided breathing timer screen.
- * Allows selecting a breathing pattern (Calm, Box, Relax) and duration (1, 2, or 5 min),
- * displaying the animated BreathingCircle, Start/Pause/Stop controls, and safety guidance.
+ * Manages rhythmic phase countdowns, cycle tracking, phase-change haptics,
+ * screen keep-awake during active sessions, and automatic cleanup on unmount.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import Screen from '../components/Screen';
 import AppText from '../components/AppText';
 import AppButton from '../components/AppButton';
 import BreathingCircle from '../components/BreathingCircle';
 import { useTheme } from '../theme/ThemeContext';
 import { BREATHING_PATTERNS, BREATHING_DURATIONS } from '../data/toolkit';
+import { haptics } from '../utils/haptics';
+
+const KEEP_AWAKE_TAG = 'mindnest-breathing';
 
 export default function BreathingScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
@@ -22,48 +26,143 @@ export default function BreathingScreen({ navigation }) {
   const [selectedPattern, setSelectedPattern] = useState(BREATHING_PATTERNS[0]);
   const [selectedDurationSec, setSelectedDurationSec] = useState(BREATHING_DURATIONS[0].seconds);
 
-  // Session state
+  // Session run state
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [phaseIndex, setPhaseIndex] = useState(0);
-  const [phaseSecondsLeft, setPhaseSecondsLeft] = useState(selectedPattern.phases[0].seconds);
-  const [totalSecondsLeft, setTotalSecondsLeft] = useState(BREATHING_DURATIONS[0].seconds);
-  const [cyclesCompleted, setCyclesCompleted] = useState(0);
+  const [timerState, setTimerState] = useState({
+    phaseIndex: 0,
+    phaseSecondsLeft: BREATHING_PATTERNS[0].phases[0].seconds,
+    totalSecondsLeft: BREATHING_DURATIONS[0].seconds,
+    cyclesCompleted: 0,
+  });
 
-  const currentPhase = selectedPattern.phases[phaseIndex] || selectedPattern.phases[0];
+  const intervalRef = useRef(null);
+  const phases = selectedPattern.phases;
+  const currentPhase = phases[timerState.phaseIndex] || phases[0];
+
+  // Keep screen awake strictly while actively running (and release on pause/stop/unmount)
+  useEffect(() => {
+    if (isRunning && !isPaused) {
+      activateKeepAwakeAsync(KEEP_AWAKE_TAG).catch(() => {});
+    } else {
+      deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => {});
+    }
+
+    return () => {
+      deactivateKeepAwake(KEEP_AWAKE_TAG).catch(() => {});
+    };
+  }, [isRunning, isPaused]);
+
+  // Haptic cue whenever a new breathing phase begins
+  useEffect(() => {
+    if (isRunning && !isPaused) {
+      haptics.light();
+    }
+  }, [timerState.phaseIndex, isRunning, isPaused]);
+
+  // 1-second session ticker using functional state updates to avoid stale closures
+  useEffect(() => {
+    if (!isRunning || isPaused) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return undefined;
+    }
+
+    intervalRef.current = setInterval(() => {
+      setTimerState((prev) => {
+        const nextTotalLeft = prev.totalSecondsLeft - 1;
+
+        if (nextTotalLeft <= 0) {
+          // Session finished
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+          setIsRunning(false);
+          setIsPaused(false);
+          return {
+            ...prev,
+            totalSecondsLeft: 0,
+            phaseSecondsLeft: 0,
+          };
+        }
+
+        const nextPhaseLeft = prev.phaseSecondsLeft - 1;
+        if (nextPhaseLeft <= 0) {
+          const nextPhaseIdx = (prev.phaseIndex + 1) % phases.length;
+          const completedCycle = nextPhaseIdx === 0 ? 1 : 0;
+          return {
+            phaseIndex: nextPhaseIdx,
+            phaseSecondsLeft: phases[nextPhaseIdx].seconds,
+            totalSecondsLeft: nextTotalLeft,
+            cyclesCompleted: prev.cyclesCompleted + completedCycle,
+          };
+        }
+
+        return {
+          ...prev,
+          phaseSecondsLeft: nextPhaseLeft,
+          totalSecondsLeft: nextTotalLeft,
+        };
+      });
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isRunning, isPaused, phases]);
 
   const handleSelectPattern = (pattern) => {
     if (isRunning) return;
+    haptics.selection();
     setSelectedPattern(pattern);
-    setPhaseIndex(0);
-    setPhaseSecondsLeft(pattern.phases[0].seconds);
+    setTimerState({
+      phaseIndex: 0,
+      phaseSecondsLeft: pattern.phases[0].seconds,
+      totalSecondsLeft: selectedDurationSec,
+      cyclesCompleted: 0,
+    });
   };
 
   const handleSelectDuration = (sec) => {
     if (isRunning) return;
+    haptics.selection();
     setSelectedDurationSec(sec);
-    setTotalSecondsLeft(sec);
+    setTimerState((prev) => ({
+      ...prev,
+      totalSecondsLeft: sec,
+    }));
   };
 
   const handleStart = () => {
-    setPhaseIndex(0);
-    setPhaseSecondsLeft(selectedPattern.phases[0].seconds);
-    setTotalSecondsLeft(selectedDurationSec);
-    setCyclesCompleted(0);
+    setTimerState({
+      phaseIndex: 0,
+      phaseSecondsLeft: phases[0].seconds,
+      totalSecondsLeft: selectedDurationSec,
+      cyclesCompleted: 0,
+    });
     setIsPaused(false);
     setIsRunning(true);
   };
 
   const handleTogglePause = () => {
+    haptics.selection();
     setIsPaused((prev) => !prev);
   };
 
   const handleStop = () => {
+    haptics.light();
     setIsRunning(false);
     setIsPaused(false);
-    setPhaseIndex(0);
-    setPhaseSecondsLeft(selectedPattern.phases[0].seconds);
-    setTotalSecondsLeft(selectedDurationSec);
+    setTimerState({
+      phaseIndex: 0,
+      phaseSecondsLeft: phases[0].seconds,
+      totalSecondsLeft: selectedDurationSec,
+      cyclesCompleted: 0,
+    });
   };
 
   const formatTime = (sec) => {
@@ -92,10 +191,10 @@ export default function BreathingScreen({ navigation }) {
 
       {/* Animated Breathing Guide */}
       <BreathingCircle
-        phaseLabel={isRunning ? currentPhase.label : 'Ready'}
+        phaseLabel={isRunning ? (isPaused ? 'Paused' : currentPhase.label) : 'Ready'}
         action={isRunning ? currentPhase.action : 'idle'}
         phaseSeconds={currentPhase.seconds}
-        secondsLeft={phaseSecondsLeft}
+        secondsLeft={timerState.phaseSecondsLeft}
         isRunning={isRunning}
         isPaused={isPaused}
       />
@@ -112,7 +211,7 @@ export default function BreathingScreen({ navigation }) {
             Time Left
           </AppText>
           <AppText variant="subheading" weight="bold">
-            {formatTime(isRunning ? totalSecondsLeft : selectedDurationSec)}
+            {formatTime(isRunning ? timerState.totalSecondsLeft : selectedDurationSec)}
           </AppText>
         </View>
 
@@ -126,7 +225,7 @@ export default function BreathingScreen({ navigation }) {
             Cycles
           </AppText>
           <AppText variant="subheading" weight="bold">
-            {cyclesCompleted}
+            {timerState.cyclesCompleted}
           </AppText>
         </View>
       </View>
