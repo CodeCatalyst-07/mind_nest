@@ -1,14 +1,20 @@
 /**
  * src/context/DataContext.js
  * Purpose: Global data store for MindNest.
- * Manages check-ins, assessments, settings, and loading state.
+ * Manages check-ins, assessments, settings, gratitude entries, tool sessions, and loading state.
  * Syncs automatically with AsyncStorage and exposes actions and selectors.
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, saveData, loadData, removeData } from '../utils/storage';
 import { toDateKey } from '../utils/dateUtils';
-import { createCheckIn, createAssessment, DEFAULT_SETTINGS } from '../data/models';
+import {
+  createCheckIn,
+  createAssessment,
+  createGratitudeEntry,
+  createToolSession,
+  DEFAULT_SETTINGS,
+} from '../data/models';
 import { generateDemoCheckIns, generateDemoAssessments } from '../data/demoData';
 
 const DataContext = createContext();
@@ -16,6 +22,8 @@ const DataContext = createContext();
 export function DataProvider({ children }) {
   const [checkIns, setCheckIns] = useState([]);
   const [assessments, setAssessments] = useState([]);
+  const [gratitudeEntries, setGratitudeEntries] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -23,14 +31,24 @@ export function DataProvider({ children }) {
   useEffect(() => {
     async function initializeData() {
       try {
-        const [savedCheckIns, savedAssessments, savedSettings] = await Promise.all([
+        const [
+          savedCheckIns,
+          savedAssessments,
+          savedGratitude,
+          savedSessions,
+          savedSettings,
+        ] = await Promise.all([
           loadData(STORAGE_KEYS.CHECKINS, []),
           loadData(STORAGE_KEYS.ASSESSMENTS, []),
+          loadData(STORAGE_KEYS.GRATITUDE, []),
+          loadData(STORAGE_KEYS.SESSIONS, []),
           loadData(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS),
         ]);
 
         setCheckIns(Array.isArray(savedCheckIns) ? savedCheckIns : []);
         setAssessments(Array.isArray(savedAssessments) ? savedAssessments : []);
+        setGratitudeEntries(Array.isArray(savedGratitude) ? savedGratitude : []);
+        setSessions(Array.isArray(savedSessions) ? savedSessions : []);
         setSettings(savedSettings ? { ...DEFAULT_SETTINGS, ...savedSettings } : DEFAULT_SETTINGS);
       } catch (error) {
         console.error('[DataContext] Error loading initial data:', error);
@@ -110,6 +128,56 @@ export function DataProvider({ children }) {
   }, []);
 
   /**
+   * Adds a new gratitude journal entry (newest first).
+   *
+   * @param {string} text
+   * @returns {Promise<object>}
+   */
+  const addGratitude = useCallback(async (text) => {
+    const formatted = createGratitudeEntry({ text });
+
+    setGratitudeEntries((prev) => {
+      const updated = [formatted, ...prev];
+      saveData(STORAGE_KEYS.GRATITUDE, updated);
+      return updated;
+    });
+
+    return formatted;
+  }, []);
+
+  /**
+   * Deletes a gratitude entry by its unique ID.
+   *
+   * @param {string} id
+   */
+  const deleteGratitude = useCallback(async (id) => {
+    setGratitudeEntries((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      saveData(STORAGE_KEYS.GRATITUDE, updated);
+      return updated;
+    });
+  }, []);
+
+  /**
+   * Logs a completed Coping Toolkit exercise session.
+   *
+   * @param {'breathing'|'grounding'|'gratitude'} type
+   * @param {number} durationSec
+   * @returns {Promise<object>}
+   */
+  const logSession = useCallback(async (type, durationSec = 60) => {
+    const formatted = createToolSession({ type, durationSec });
+
+    setSessions((prev) => {
+      const updated = [formatted, ...prev];
+      saveData(STORAGE_KEYS.SESSIONS, updated);
+      return updated;
+    });
+
+    return formatted;
+  }, []);
+
+  /**
    * Partially updates user settings and saves to storage.
    *
    * @param {object} partialSettings
@@ -128,11 +196,15 @@ export function DataProvider({ children }) {
   const clearAllData = useCallback(async () => {
     setCheckIns([]);
     setAssessments([]);
+    setGratitudeEntries([]);
+    setSessions([]);
     setSettings(DEFAULT_SETTINGS);
 
     await Promise.all([
       removeData(STORAGE_KEYS.CHECKINS),
       removeData(STORAGE_KEYS.ASSESSMENTS),
+      removeData(STORAGE_KEYS.GRATITUDE),
+      removeData(STORAGE_KEYS.SESSIONS),
       removeData(STORAGE_KEYS.SETTINGS),
     ]);
   }, []);
@@ -183,11 +255,16 @@ export function DataProvider({ children }) {
   const value = {
     checkIns,
     assessments,
+    gratitudeEntries,
+    sessions,
     settings,
     isLoading,
     saveCheckIn,
     deleteCheckIn,
     saveAssessment,
+    addGratitude,
+    deleteGratitude,
+    logSession,
     updateSettings,
     clearAllData,
     loadDemoData,
