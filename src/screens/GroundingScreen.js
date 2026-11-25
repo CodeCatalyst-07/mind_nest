@@ -1,8 +1,8 @@
 /**
  * src/screens/GroundingScreen.js
  * Purpose: Full-screen 5-4-3-2-1 sensory grounding exercise screen.
- * Presents one sensory step per page with a progress bar and an interactive tap circle
- * with spring feedback and haptics as the student notices items around them.
+ * Presents one sensory step per page with a progress bar, interactive tap circle
+ * with spring feedback and haptics, and logs a ToolSession upon completion.
  */
 
 import React, { useState, useRef } from 'react';
@@ -10,18 +10,23 @@ import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import AppText from '../components/AppText';
+import Card from '../components/Card';
 import ProgressBar from '../components/ProgressBar';
 import AppButton from '../components/AppButton';
 import { useTheme } from '../theme/ThemeContext';
+import { useData } from '../context/DataContext';
 import { GROUNDING_STEPS } from '../data/toolkit';
 import { haptics } from '../utils/haptics';
 
 export default function GroundingScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
+  const { logSession } = useData();
 
   const [stepIndex, setStepIndex] = useState(0);
   const [tapCount, setTapCount] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
 
+  const startedAtRef = useRef(Date.now());
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const currentStep = GROUNDING_STEPS[stepIndex] || GROUNDING_STEPS[0];
   const isStepComplete = tapCount >= currentStep.count;
@@ -57,11 +62,17 @@ export default function GroundingScreen({ navigation }) {
 
   const handleNext = () => {
     if (!isStepComplete) return;
-    haptics.selection();
 
     if (!isLastStep) {
+      haptics.selection();
       setStepIndex((prev) => prev + 1);
       setTapCount(0);
+    } else {
+      // Complete exercise and log ToolSession
+      const elapsedSec = Math.max(15, Math.round((Date.now() - startedAtRef.current) / 1000));
+      haptics.success();
+      setIsCompleted(true);
+      logSession('grounding', elapsedSec);
     }
   };
 
@@ -72,6 +83,13 @@ export default function GroundingScreen({ navigation }) {
       setStepIndex((prev) => prev - 1);
       setTapCount(prevStep.count);
     }
+  };
+
+  const handleReset = () => {
+    startedAtRef.current = Date.now();
+    setStepIndex(0);
+    setTapCount(0);
+    setIsCompleted(false);
   };
 
   return (
@@ -92,106 +110,147 @@ export default function GroundingScreen({ navigation }) {
         <View style={styles.backButtonPlaceholder} />
       </View>
 
-      {/* Progress Bar */}
-      <ProgressBar currentStep={stepIndex} totalSteps={GROUNDING_STEPS.length} />
-
-      <AppText
-        variant="caption"
-        color={colors.mutedText}
-        style={{ textAlign: 'center', marginBottom: spacing.md }}
-      >
-        Step {stepIndex + 1} of {GROUNDING_STEPS.length}
-      </AppText>
-
-      {/* Step Instruction */}
-      <View style={styles.instructionBox}>
-        <AppText style={styles.stepEmoji}>{currentStep.icon}</AppText>
-        <AppText variant="title" weight="bold" style={styles.stepTitle}>
-          {currentStep.title}
-        </AppText>
-        <AppText
-          variant="body"
-          color={colors.mutedText}
-          style={[styles.stepPrompt, { marginTop: spacing.xs }]}
-        >
-          {currentStep.prompt}
-        </AppText>
-      </View>
-
-      {/* Interactive Sensory Tap Circle */}
-      <View style={styles.circleContainer}>
-        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          <TouchableOpacity
-            onPress={handleTapCircle}
-            activeOpacity={0.85}
-            disabled={isStepComplete}
-            accessibilityRole="button"
-            accessibilityLabel={`Tap to record noticing item ${tapCount + 1} of ${currentStep.count} for ${currentStep.sense}`}
+      {isCompleted ? (
+        <Card style={[styles.completionCard, { marginTop: spacing.xl }]}>
+          <View
             style={[
-              styles.tapCircle,
-              {
-                backgroundColor: isStepComplete ? colors.accent : `${colors.accent}22`,
-                borderColor: colors.accent,
-              },
+              styles.completeBadge,
+              { backgroundColor: `${colors.accent}22`, borderRadius: borderRadius.full },
             ]}
           >
-            <AppText
-              variant="title"
-              weight="bold"
-              color={isStepComplete ? '#FFFFFF' : colors.accent}
-              style={styles.counterText}
-            >
-              {tapCount} / {currentStep.count}
-            </AppText>
-            <AppText
-              variant="bodySmall"
-              weight="medium"
-              color={isStepComplete ? '#FFFFFF' : colors.text}
-              style={{ marginTop: 4 }}
-            >
-              {isStepComplete ? 'Ready!' : 'Tap as you notice'}
-            </AppText>
-          </TouchableOpacity>
-        </Animated.View>
+            <AppText style={styles.completeEmoji}>🌿</AppText>
+          </View>
 
-        {/* Visual Tap Dots */}
-        <View style={[styles.dotsRow, { marginTop: spacing.lg }]}>
-          {Array.from({ length: currentStep.count }).map((_, idx) => {
-            const filled = idx < tapCount;
-            return (
-              <View
-                key={`tap-dot-${idx}`}
+          <AppText variant="title" weight="bold" style={styles.completeTitle}>
+            Grounded in the Moment
+          </AppText>
+
+          <AppText
+            variant="body"
+            color={colors.mutedText}
+            style={[styles.completeMessage, { marginTop: spacing.sm, marginBottom: spacing.lg }]}
+          >
+            You noticed 15 details around you using all 5 senses. Whenever racing thoughts pick up,
+            you can come back to what is right here in front of you.
+          </AppText>
+
+          <AppButton
+            title="Back to Toolkit"
+            onPress={() => navigation.goBack()}
+            variant="primary"
+            style={{ width: '100%', backgroundColor: colors.accent }}
+          />
+          <AppButton
+            title="Do Again"
+            onPress={handleReset}
+            variant="secondary"
+            style={{ width: '100%', marginTop: spacing.sm }}
+          />
+        </Card>
+      ) : (
+        <>
+          {/* Progress Bar */}
+          <ProgressBar currentStep={stepIndex} totalSteps={GROUNDING_STEPS.length} />
+
+          <AppText
+            variant="caption"
+            color={colors.mutedText}
+            style={{ textAlign: 'center', marginBottom: spacing.md }}
+          >
+            Step {stepIndex + 1} of {GROUNDING_STEPS.length}
+          </AppText>
+
+          {/* Step Instruction */}
+          <View style={styles.instructionBox}>
+            <AppText style={styles.stepEmoji}>{currentStep.icon}</AppText>
+            <AppText variant="title" weight="bold" style={styles.stepTitle}>
+              {currentStep.title}
+            </AppText>
+            <AppText
+              variant="body"
+              color={colors.mutedText}
+              style={[styles.stepPrompt, { marginTop: spacing.xs }]}
+            >
+              {currentStep.prompt}
+            </AppText>
+          </View>
+
+          {/* Interactive Sensory Tap Circle */}
+          <View style={styles.circleContainer}>
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <TouchableOpacity
+                onPress={handleTapCircle}
+                activeOpacity={0.85}
+                disabled={isStepComplete}
+                accessibilityRole="button"
+                accessibilityLabel={`Tap to record noticing item ${tapCount + 1} of ${currentStep.count} for ${currentStep.sense}`}
                 style={[
-                  styles.dot,
+                  styles.tapCircle,
                   {
-                    backgroundColor: filled ? colors.accent : colors.border,
-                    borderRadius: borderRadius.full,
+                    backgroundColor: isStepComplete ? colors.accent : `${colors.accent}22`,
+                    borderColor: colors.accent,
                   },
                 ]}
-              />
-            );
-          })}
-        </View>
-      </View>
+              >
+                <AppText
+                  variant="title"
+                  weight="bold"
+                  color={isStepComplete ? '#FFFFFF' : colors.accent}
+                  style={styles.counterText}
+                >
+                  {tapCount} / {currentStep.count}
+                </AppText>
+                <AppText
+                  variant="bodySmall"
+                  weight="medium"
+                  color={isStepComplete ? '#FFFFFF' : colors.text}
+                  style={{ marginTop: 4 }}
+                >
+                  {isStepComplete ? 'Ready!' : 'Tap as you notice'}
+                </AppText>
+              </TouchableOpacity>
+            </Animated.View>
 
-      {/* Navigation Footer */}
-      <View style={[styles.footerRow, { marginTop: spacing.xl }]}>
-        {stepIndex > 0 ? (
-          <AppButton
-            title="Back"
-            onPress={handleBackStep}
-            variant="secondary"
-            style={{ flex: 1 }}
-          />
-        ) : null}
-        <AppButton
-          title={isLastStep ? 'Finish' : 'Next'}
-          onPress={handleNext}
-          disabled={!isStepComplete}
-          variant="primary"
-          style={{ flex: 2, backgroundColor: colors.accent }}
-        />
-      </View>
+            {/* Visual Tap Dots */}
+            <View style={[styles.dotsRow, { marginTop: spacing.lg }]}>
+              {Array.from({ length: currentStep.count }).map((_, idx) => {
+                const filled = idx < tapCount;
+                return (
+                  <View
+                    key={`tap-dot-${idx}`}
+                    style={[
+                      styles.dot,
+                      {
+                        backgroundColor: filled ? colors.accent : colors.border,
+                        borderRadius: borderRadius.full,
+                      },
+                    ]}
+                  />
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Navigation Footer */}
+          <View style={[styles.footerRow, { marginTop: spacing.xl }]}>
+            {stepIndex > 0 ? (
+              <AppButton
+                title="Back"
+                onPress={handleBackStep}
+                variant="secondary"
+                style={{ flex: 1 }}
+              />
+            ) : null}
+            <AppButton
+              title={isLastStep ? 'Finish' : 'Next'}
+              onPress={handleNext}
+              disabled={!isStepComplete}
+              variant="primary"
+              style={{ flex: 2, backgroundColor: colors.accent }}
+            />
+          </View>
+        </>
+      )}
     </Screen>
   );
 }
@@ -255,5 +314,26 @@ const styles = StyleSheet.create({
   footerRow: {
     flexDirection: 'row',
     gap: 12,
+  },
+  completionCard: {
+    alignItems: 'center',
+    paddingVertical: 28,
+  },
+  completeBadge: {
+    width: 72,
+    height: 72,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  completeEmoji: {
+    fontSize: 36,
+  },
+  completeTitle: {
+    textAlign: 'center',
+  },
+  completeMessage: {
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
