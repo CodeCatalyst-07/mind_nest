@@ -15,7 +15,12 @@ import {
   createToolSession,
   DEFAULT_SETTINGS,
 } from '../data/models';
-import { generateDemoCheckIns, generateDemoAssessments } from '../data/demoData';
+import {
+  generateDemoCheckIns,
+  generateDemoAssessments,
+  generateDemoGratitudeEntries,
+  generateDemoToolSessions,
+} from '../data/demoData';
 
 const DataContext = createContext();
 
@@ -240,16 +245,27 @@ export function DataProvider({ children }) {
   const loadDemoData = useCallback(async (days = 14) => {
     const demoSet = generateDemoCheckIns(days);
     const demoAssessments = generateDemoAssessments(4);
+    const demoGratitude = generateDemoGratitudeEntries();
+    const demoSessions = generateDemoToolSessions();
 
     setCheckIns(demoSet);
     setAssessments(demoAssessments);
+    setGratitudeEntries(demoGratitude);
+    setSessions(demoSessions);
 
     await Promise.all([
       saveData(STORAGE_KEYS.CHECKINS, demoSet),
       saveData(STORAGE_KEYS.ASSESSMENTS, demoAssessments),
+      saveData(STORAGE_KEYS.GRATITUDE, demoGratitude),
+      saveData(STORAGE_KEYS.SESSIONS, demoSessions),
     ]);
 
-    return { checkIns: demoSet, assessments: demoAssessments };
+    return {
+      checkIns: demoSet,
+      assessments: demoAssessments,
+      gratitudeEntries: demoGratitude,
+      sessions: demoSessions,
+    };
   }, []);
 
   const value = {

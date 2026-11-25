@@ -6,7 +6,12 @@
  */
 
 import { getLastNDays, toDateKey } from '../utils/dateUtils';
-import { createCheckIn, createAssessment } from './models';
+import {
+  createCheckIn,
+  createAssessment,
+  createGratitudeEntry,
+  createToolSession,
+} from './models';
 import { scoreQuestionnaire } from '../utils/scoring';
 
 // Sample relatable student reflections for varying mood states
@@ -127,4 +132,63 @@ export function generateDemoAssessments(count = 4) {
   }
 
   return assessments;
+}
+
+
+/**
+ * Generates realistic demo gratitude entries over the past few days.
+ * Keeps today clear so the student can still test adding up to 3 entries today.
+ *
+ * @returns {object[]} Array of GratitudeEntry objects (newest first)
+ */
+export function generateDemoGratitudeEntries() {
+  const samples = [
+    { daysAgo: 1, text: 'Grabbed iced coffee with a friend between morning lectures.' },
+    { daysAgo: 1, text: 'Finished my lab assignment ahead of the midnight deadline.' },
+    { daysAgo: 2, text: 'Quiet sunset walk across campus after a busy afternoon.' },
+    { daysAgo: 3, text: 'Professor gave helpful feedback on my project draft.' },
+    { daysAgo: 4, text: 'Called home and caught up with family for twenty minutes.' },
+  ];
+
+  const now = new Date();
+  return samples.map((item, idx) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - item.daysAgo);
+    const dateKey = toDateKey(d);
+    return createGratitudeEntry({
+      date: dateKey,
+      text: item.text,
+      createdAt: new Date(`${dateKey}T20:${String(10 + idx).padStart(2, '0')}:00.000Z`).toISOString(),
+    });
+  });
+}
+
+/**
+ * Generates demo Coping Toolkit sessions across the past 7 days
+ * so the weekly usage summary displays active practice metrics.
+ *
+ * @returns {object[]} Array of ToolSession objects (newest first)
+ */
+export function generateDemoToolSessions() {
+  const samples = [
+    { daysAgo: 1, type: 'breathing', durationSec: 120 },
+    { daysAgo: 1, type: 'gratitude', durationSec: 60 },
+    { daysAgo: 2, type: 'grounding', durationSec: 90 },
+    { daysAgo: 3, type: 'breathing', durationSec: 300 },
+    { daysAgo: 4, type: 'gratitude', durationSec: 60 },
+    { daysAgo: 5, type: 'grounding', durationSec: 120 },
+  ];
+
+  const now = new Date();
+  return samples.map((item, idx) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - item.daysAgo);
+    const dateKey = toDateKey(d);
+    return createToolSession({
+      type: item.type,
+      durationSec: item.durationSec,
+      date: dateKey,
+      createdAt: new Date(`${dateKey}T19:${String(15 + idx).padStart(2, '0')}:00.000Z`).toISOString(),
+    });
+  });
 }
