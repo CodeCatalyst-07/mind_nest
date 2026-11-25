@@ -100,6 +100,31 @@ Reflective insights detect gentle correlational patterns in student life without
 
 ---
 
+## 🧰 Coping Toolkit
+
+MindNest's **Toolkit** tab provides quick, practical self-help exercises tailored to college life and the student's daily mood rating.
+
+### Included Tools
+1. **Guided Breathing (`BreathingScreen` & `BreathingCircle`)**:
+   - Features three paced rhythms: **Calm (4-6)**, **Box (4-4-4-4)**, and **Relax (4-7-8)** for **1, 2, or 5 minutes**.
+   - Animated breathing circle expands on inhale, holds steady, and contracts smoothly on exhale with haptic cues at every phase change and `expo-keep-awake` keeping the screen active while running.
+   - Displays a safety reminder (*"If you feel dizzy, stop and breathe normally."*) and cleans up all timers/animations automatically if exited mid-session.
+2. **5-4-3-2-1 Grounding (`GroundingScreen`)**:
+   - Interactive sensory check-in guiding the student through **5 things you can see**, **4 you can feel**, **3 you can hear**, **2 you can smell**, and **1 you can taste**.
+   - Includes a progress bar and animated tap feedback for each noticed item before advancing.
+3. **Gratitude Journal (`GratitudeScreen`)**:
+   - Rotating friendly prompts (max 100 characters per reflection) with a **3 entries per day** limit to keep reflections intentional.
+   - Groups entries by calendar date and supports confirmed deletion.
+
+### Mood-Based Recommendations & Usage Summary
+- **`getRecommendation(todayMood)`**: Automatically suggests Breathing or Grounding on low/stressed mood days (1–2), Grounding on neutral days (3), Gratitude on positive days (4–5), or a quick 1-minute breathing pause if today's check-in hasn't been logged yet.
+- **Weekly Usage Summary (`summarizeSessions`)**: Tracks completed `ToolSession` records locally in AsyncStorage and totals sessions, minutes, and per-tool counts over the past 7 days.
+
+> [!NOTE]
+> **Self-Help Disclaimer**: All exercises in the Coping Toolkit are supportive self-help practices intended for everyday stress management and mindfulness. They are **not** medical or psychological treatment.
+
+---
+
 ## 🚀 How to Run
 
 1. **Install dependencies**:
