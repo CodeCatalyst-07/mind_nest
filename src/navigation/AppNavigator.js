@@ -1,7 +1,7 @@
 /**
  * src/navigation/AppNavigator.js
  * Purpose: Root native stack navigator containing the main Bottom Tabs
- * as well as full-screen modal/stack routes (CheckIn and Questionnaire).
+ * as well as full-screen routes (CheckIn, Questionnaire, Breathing, Grounding, Gratitude).
  */
 
 import React from 'react';
@@ -11,6 +11,9 @@ import { useTheme } from '../theme/ThemeContext';
 import TabNavigator from './TabNavigator';
 import CheckInScreen from '../screens/CheckInScreen';
 import QuestionnaireScreen from '../screens/QuestionnaireScreen';
+import BreathingScreen from '../screens/BreathingScreen';
+import GroundingScreen from '../screens/GroundingScreen';
+import GratitudeScreen from '../screens/GratitudeScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +52,29 @@ export default function AppNavigator() {
       <Stack.Screen
         name="Questionnaire"
         component={QuestionnaireScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      {/* Coping Toolkit activity routes */}
+      <Stack.Screen
+        name="Breathing"
+        component={BreathingScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Grounding"
+        component={GroundingScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Gratitude"
+        component={GratitudeScreen}
         options={{
           headerShown: false,
         }}

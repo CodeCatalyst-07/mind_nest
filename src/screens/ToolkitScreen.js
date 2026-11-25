@@ -16,10 +16,16 @@ import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import { TOOL_CATALOG, getToolkitAccentColor } from '../data/toolkit';
 import { getRecommendation } from '../utils/toolkit';
+import { haptics } from '../utils/haptics';
 
 export default function ToolkitScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
   const { getTodayCheckIn } = useData();
+
+  const handleOpenTool = (route) => {
+    haptics.selection();
+    navigation.navigate(route);
+  };
 
   const todayCheckIn = getTodayCheckIn();
   const recommendation = getRecommendation(todayCheckIn?.mood);
@@ -83,7 +89,7 @@ export default function ToolkitScreen({ navigation }) {
         <AppButton
           title={`Start ${recommendedTool.title}`}
           variant="primary"
-          onPress={() => navigation?.navigate?.(recommendation.route)}
+          onPress={() => handleOpenTool(recommendation.route)}
           style={{ marginTop: spacing.md, backgroundColor: recAccent }}
         />
       </View>
@@ -103,7 +109,7 @@ export default function ToolkitScreen({ navigation }) {
             <TouchableOpacity
               key={tool.id}
               activeOpacity={0.75}
-              onPress={() => navigation?.navigate?.(tool.route)}
+              onPress={() => handleOpenTool(tool.route)}
               accessibilityRole="button"
               accessibilityLabel={`${tool.title}. ${tool.description}`}
             >
