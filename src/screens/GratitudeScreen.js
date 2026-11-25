@@ -262,7 +262,8 @@ export default function GratitudeScreen({ navigation }) {
                         onPress={() => handleDelete(entry)}
                         style={styles.deleteButton}
                         accessibilityRole="button"
-                        accessibilityLabel="Delete gratitude entry"
+                        accessibilityLabel={`Delete gratitude entry: ${entry.text}`}
+                        accessibilityHint="Removes this entry after confirmation"
                       >
                         <Ionicons name="trash-outline" size={18} color={colors.mutedText} />
                       </TouchableOpacity>
@@ -321,7 +322,7 @@ const styles = StyleSheet.create({
   promptSwapBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 36,
+    minHeight: 44,
     paddingVertical: 4,
   },
   listHeader: {

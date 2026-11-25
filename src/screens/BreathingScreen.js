@@ -277,6 +277,8 @@ export default function BreathingScreen({ navigation }) {
                   borderRadius: borderRadius.md,
                 },
               ]}
+              accessible
+              accessibilityLabel={`Time remaining: ${formatTime(isRunning ? timerState.totalSecondsLeft : selectedDurationSec)}`}
             >
               <AppText variant="caption" color={colors.mutedText}>
                 Time Left
@@ -295,6 +297,8 @@ export default function BreathingScreen({ navigation }) {
                   borderRadius: borderRadius.md,
                 },
               ]}
+              accessible
+              accessibilityLabel={`Completed breathing cycles: ${timerState.cyclesCompleted}`}
             >
               <AppText variant="caption" color={colors.mutedText}>
                 Cycles
@@ -329,6 +333,7 @@ export default function BreathingScreen({ navigation }) {
                         },
                       ]}
                       accessibilityRole="radio"
+                      accessibilityLabel={`${pattern.name}. ${pattern.subtitle}`}
                       accessibilityState={{ selected: isSelected }}
                     >
                       <AppText
@@ -371,6 +376,7 @@ export default function BreathingScreen({ navigation }) {
                         },
                       ]}
                       accessibilityRole="radio"
+                      accessibilityLabel={`Session duration ${dur.label}`}
                       accessibilityState={{ selected: isSelected }}
                     >
                       <AppText

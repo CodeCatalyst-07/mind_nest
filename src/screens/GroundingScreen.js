@@ -19,8 +19,9 @@ import { GROUNDING_STEPS } from '../data/toolkit';
 import { haptics } from '../utils/haptics';
 
 export default function GroundingScreen({ navigation }) {
-  const { colors, spacing, borderRadius } = useTheme();
+  const { colors, spacing, borderRadius, isDark } = useTheme();
   const { logSession } = useData();
+  const completedAccentText = isDark ? '#0F172A' : '#FFFFFF';
 
   const [stepIndex, setStepIndex] = useState(0);
   const [tapCount, setTapCount] = useState(0);
@@ -184,6 +185,7 @@ export default function GroundingScreen({ navigation }) {
                 disabled={isStepComplete}
                 accessibilityRole="button"
                 accessibilityLabel={`Tap to record noticing item ${tapCount + 1} of ${currentStep.count} for ${currentStep.sense}`}
+                accessibilityHint="Tap once for each item you notice"
                 style={[
                   styles.tapCircle,
                   {
@@ -195,7 +197,7 @@ export default function GroundingScreen({ navigation }) {
                 <AppText
                   variant="title"
                   weight="bold"
-                  color={isStepComplete ? '#FFFFFF' : colors.accent}
+                  color={isStepComplete ? completedAccentText : colors.accent}
                   style={styles.counterText}
                 >
                   {tapCount} / {currentStep.count}
@@ -203,7 +205,7 @@ export default function GroundingScreen({ navigation }) {
                 <AppText
                   variant="bodySmall"
                   weight="medium"
-                  color={isStepComplete ? '#FFFFFF' : colors.text}
+                  color={isStepComplete ? completedAccentText : colors.text}
                   style={{ marginTop: 4 }}
                 >
                   {isStepComplete ? 'Ready!' : 'Tap as you notice'}

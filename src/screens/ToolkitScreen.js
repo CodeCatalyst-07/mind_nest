@@ -32,6 +32,7 @@ export default function ToolkitScreen({ navigation }) {
   const recommendedTool =
     TOOL_CATALOG.find((item) => item.id === recommendation.toolId) || TOOL_CATALOG[0];
   const recAccent = getToolkitAccentColor(recommendedTool.colorKey, colors);
+  const recBadgeTextColor = recommendedTool.colorKey === 'moodLevel4' ? '#0F172A' : '#FFFFFF';
 
   const weeklySummary = summarizeSessions(sessions, 7);
 
@@ -70,7 +71,7 @@ export default function ToolkitScreen({ navigation }) {
               },
             ]}
           >
-            <AppText variant="caption" weight="bold" color="#FFFFFF">
+            <AppText variant="caption" weight="bold" color={recBadgeTextColor}>
               ✨ Suggested for you
             </AppText>
           </View>
@@ -93,6 +94,8 @@ export default function ToolkitScreen({ navigation }) {
           variant="primary"
           onPress={() => handleOpenTool(recommendation.route)}
           style={{ marginTop: spacing.md, backgroundColor: recAccent }}
+          textStyle={{ color: recBadgeTextColor }}
+          accessibilityHint={`Opens ${recommendedTool.title}`}
         />
       </View>
 
@@ -114,6 +117,7 @@ export default function ToolkitScreen({ navigation }) {
               onPress={() => handleOpenTool(tool.route)}
               accessibilityRole="button"
               accessibilityLabel={`${tool.title}. ${tool.description}`}
+              accessibilityHint={`Opens ${tool.title}`}
             >
               <Card style={styles.toolCard}>
                 <View style={styles.toolRow}>

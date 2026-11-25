@@ -106,7 +106,7 @@ export default function BreathingCircle({
       />
 
       {/* Crisp static center text overlay */}
-      <View style={styles.centerContent}>
+      <View style={styles.centerContent} accessibilityLiveRegion="polite">
         <AppText variant="heading" weight="bold" color={colors.text} style={styles.phaseText}>
           {phaseLabel}
         </AppText>
