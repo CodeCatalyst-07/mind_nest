@@ -1,8 +1,8 @@
 /**
  * src/screens/ToolkitScreen.js
  * Purpose: Tab screen serving as the Coping Toolkit hub.
- * Displays a mood-based recommendation banner ("Suggested for you") and interactive
- * tool cards for Breathing, 5-4-3-2-1 Grounding, and Gratitude Journaling.
+ * Displays a mood-based recommendation banner ("Suggested for you"), interactive tool cards
+ * for Breathing, Grounding, and Gratitude, and a weekly toolkit usage summary card.
  */
 
 import React from 'react';
@@ -15,12 +15,12 @@ import AppButton from '../components/AppButton';
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import { TOOL_CATALOG, getToolkitAccentColor } from '../data/toolkit';
-import { getRecommendation } from '../utils/toolkit';
+import { getRecommendation, summarizeSessions } from '../utils/toolkit';
 import { haptics } from '../utils/haptics';
 
 export default function ToolkitScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
-  const { getTodayCheckIn } = useData();
+  const { getTodayCheckIn, sessions } = useData();
 
   const handleOpenTool = (route) => {
     haptics.selection();
@@ -32,6 +32,8 @@ export default function ToolkitScreen({ navigation }) {
   const recommendedTool =
     TOOL_CATALOG.find((item) => item.id === recommendation.toolId) || TOOL_CATALOG[0];
   const recAccent = getToolkitAccentColor(recommendedTool.colorKey, colors);
+
+  const weeklySummary = summarizeSessions(sessions, 7);
 
   return (
     <Screen scrollable>
@@ -164,11 +166,83 @@ export default function ToolkitScreen({ navigation }) {
         })}
       </View>
 
+      {/* Weekly Usage Summary Card */}
+      <View style={[styles.sectionHeader, { marginTop: spacing.lg }]}>
+        <AppText variant="subheading" weight="bold">
+          This Week’s Practice
+        </AppText>
+      </View>
+
+      <Card
+        accessible
+        accessibilityRole="summary"
+        accessibilityLabel={`Weekly toolkit summary: ${weeklySummary.totalSessions} sessions totaling ${weeklySummary.totalMinutes} minutes. Breathing: ${weeklySummary.counts.breathing}, Grounding: ${weeklySummary.counts.grounding}, Gratitude: ${weeklySummary.counts.gratitude}.`}
+      >
+        <View style={styles.summaryTopRow}>
+          <View style={[styles.summaryStatBox, { borderColor: colors.border, borderRadius: borderRadius.md }]}>
+            <AppText variant="title" weight="bold" color={colors.primary}>
+              {weeklySummary.totalSessions}
+            </AppText>
+            <AppText variant="caption" color={colors.mutedText}>
+              {weeklySummary.totalSessions === 1 ? 'Session' : 'Sessions'} (7d)
+            </AppText>
+          </View>
+
+          <View style={[styles.summaryStatBox, { borderColor: colors.border, borderRadius: borderRadius.md }]}>
+            <AppText variant="title" weight="bold" color={colors.accent}>
+              {weeklySummary.totalMinutes}
+            </AppText>
+            <AppText variant="caption" color={colors.mutedText}>
+              {weeklySummary.totalMinutes === 1 ? 'Minute' : 'Minutes'} (7d)
+            </AppText>
+          </View>
+        </View>
+
+        {/* Per-tool breakdown */}
+        <View
+          style={[
+            styles.breakdownRow,
+            { borderTopColor: colors.border, marginTop: spacing.md, paddingTop: spacing.md },
+          ]}
+        >
+          <View style={styles.breakdownItem}>
+            <AppText variant="bodySmall">🌬️ {weeklySummary.counts.breathing}</AppText>
+            <AppText variant="caption" color={colors.mutedText}>
+              Breathing
+            </AppText>
+          </View>
+
+          <View style={styles.breakdownItem}>
+            <AppText variant="bodySmall">🌿 {weeklySummary.counts.grounding}</AppText>
+            <AppText variant="caption" color={colors.mutedText}>
+              Grounding
+            </AppText>
+          </View>
+
+          <View style={styles.breakdownItem}>
+            <AppText variant="bodySmall">✨ {weeklySummary.counts.gratitude}</AppText>
+            <AppText variant="caption" color={colors.mutedText}>
+              Gratitude
+            </AppText>
+          </View>
+        </View>
+
+        {weeklySummary.totalSessions === 0 ? (
+          <AppText
+            variant="caption"
+            color={colors.mutedText}
+            style={{ marginTop: spacing.sm, textAlign: 'center' }}
+          >
+            Complete any exercise above to track your self-care time this week.
+          </AppText>
+        ) : null}
+      </Card>
+
       {/* Gentle supportive note */}
       <AppText
         variant="caption"
         color={colors.mutedText}
-        style={{ marginTop: spacing.lg, textAlign: 'center', lineHeight: 18 }}
+        style={{ marginTop: spacing.md, marginBottom: spacing.lg, textAlign: 'center', lineHeight: 18 }}
       >
         These tools are supportive self-help exercises, not medical treatment.
       </AppText>
@@ -229,5 +303,24 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
+  },
+  summaryTopRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  summaryStatBox: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderWidth: 1,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+  },
+  breakdownItem: {
+    alignItems: 'center',
+    gap: 2,
   },
 });
