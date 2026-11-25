@@ -34,6 +34,23 @@
  *   reminderTime: string,    // Reminder time in "HH:mm" (e.g. "20:00")
  *   pinEnabled: boolean      // Optional privacy PIN protection
  * }
+ *
+ * GratitudeEntry:
+ * {
+ *   id: string,             // Unique identifier (e.g. "gratitude_1700000000_abc")
+ *   date: string,           // Local date key "YYYY-MM-DD"
+ *   text: string,           // Short gratitude reflection (max 100 chars)
+ *   createdAt: string       // ISO timestamp
+ * }
+ *
+ * ToolSession:
+ * {
+ *   id: string,             // Unique identifier (e.g. "session_1700000000_xyz")
+ *   type: string,           // Tool type: "breathing" | "grounding" | "gratitude"
+ *   durationSec: number,    // Duration of session in seconds
+ *   date: string,           // Local date key "YYYY-MM-DD"
+ *   createdAt: string       // ISO timestamp
+ * }
  */
 
 import { toDateKey } from '../utils/dateUtils.js';
@@ -117,6 +134,62 @@ export function createAssessment({
     answers: Array.isArray(answers) ? answers : [],
     score: Number(score) || 0,
     category: typeof category === 'string' ? category : 'Weekly Well-being',
+    createdAt: createdAt || new Date().toISOString(),
+  };
+}
+
+
+const VALID_TOOL_TYPES = ['breathing', 'grounding', 'gratitude'];
+
+/**
+ * Factory function to create a validated GratitudeEntry record.
+ *
+ * @param {object} params
+ * @param {string} [params.id]
+ * @param {string} [params.date] - Date key "YYYY-MM-DD" (defaults to today)
+ * @param {string} [params.text=''] - Short gratitude reflection (trimmed, max 100 chars)
+ * @param {string} [params.createdAt]
+ * @returns {object} Formatted GratitudeEntry record
+ */
+export function createGratitudeEntry({
+  id,
+  date,
+  text = '',
+  createdAt,
+} = {}) {
+  const cleanText = typeof text === 'string' ? text.trim().slice(0, 100) : '';
+  return {
+    id: id || generateId('gratitude'),
+    date: date || toDateKey(new Date()),
+    text: cleanText,
+    createdAt: createdAt || new Date().toISOString(),
+  };
+}
+
+/**
+ * Factory function to create a validated ToolSession record.
+ *
+ * @param {object} params
+ * @param {string} [params.id]
+ * @param {'breathing'|'grounding'|'gratitude'} [params.type='breathing']
+ * @param {number} [params.durationSec=60] - Duration in seconds
+ * @param {string} [params.date] - Date key "YYYY-MM-DD" (defaults to today)
+ * @param {string} [params.createdAt]
+ * @returns {object} Formatted ToolSession record
+ */
+export function createToolSession({
+  id,
+  type = 'breathing',
+  durationSec = 60,
+  date,
+  createdAt,
+} = {}) {
+  const safeType = VALID_TOOL_TYPES.includes(type) ? type : 'breathing';
+  return {
+    id: id || generateId('session'),
+    type: safeType,
+    durationSec: Math.max(0, Math.round(Number(durationSec) || 0)),
+    date: date || toDateKey(new Date()),
     createdAt: createdAt || new Date().toISOString(),
   };
 }

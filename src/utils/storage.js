@@ -12,6 +12,8 @@ export const STORAGE_KEYS = {
   CHECKINS: '@mindnest_checkins',
   ASSESSMENTS: '@mindnest_assessments',
   SETTINGS: '@mindnest_settings',
+  GRATITUDE: '@mindnest_gratitude',
+  SESSIONS: '@mindnest_sessions',
 };
 
 /**
