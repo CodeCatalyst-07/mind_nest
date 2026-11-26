@@ -4,6 +4,8 @@
 
 MindNest was created for **College Problem Statement #222**: *"Mental health and well-being surveillance, assessment and tracking solution among children"* (**Ministry of Education — Smart Education**, software edition). It gives students a calm, private, stigma-free space on their own phone to reflect daily, complete a short weekly well-being self-check, spot sleep/mood patterns, practice calming exercises, and reach verified human support whenever life feels heavy.
 
+📱 **Download the app:** [MindNest APK (latest release)](https://github.com/CodeCatalyst-07/mind_nest/releases/latest)
+
 ---
 
 ## 🎯 The Problem It Solves
