@@ -4,7 +4,7 @@
  * Appearance, Feedback, Reminders, Privacy, Support, Data, Developer Tools, and About.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
@@ -15,6 +15,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import { toDateKey } from '../utils/dateUtils';
 import { haptics } from '../utils/haptics';
+import { scheduleDailyReminder, cancelDailyReminders } from '../utils/notifications';
 
 const THEME_OPTIONS = [
   { label: 'System', value: 'system' },
@@ -22,9 +23,12 @@ const THEME_OPTIONS = [
   { label: 'Dark', value: 'dark' },
 ];
 
+const REMINDER_TIMES = ['09:00', '13:00', '18:00', '20:00', '21:30'];
+
 export default function SettingsScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
   const { checkIns, settings, updateSettings, saveCheckIn, loadDemoData, clearAllData } = useData();
+  const [reminderNotice, setReminderNotice] = useState('');
 
   const handleSelectTheme = (mode) => {
     haptics.selection();
@@ -36,6 +40,30 @@ export default function SettingsScreen({ navigation }) {
     if (nextVal) {
       // Trigger light tap only after enabling
       setTimeout(() => haptics.light(), 50);
+    }
+  };
+
+  const handleToggleReminder = async (enabled) => {
+    haptics.selection();
+    const targetTime = settings.reminderTime || '20:00';
+
+    if (enabled) {
+      const result = await scheduleDailyReminder(targetTime);
+      setReminderNotice(result.message);
+      await updateSettings({ reminderEnabled: true, reminderTime: targetTime });
+    } else {
+      await cancelDailyReminders();
+      setReminderNotice('Daily reminder turned off.');
+      await updateSettings({ reminderEnabled: false });
+    }
+  };
+
+  const handleSelectReminderTime = async (time) => {
+    haptics.selection();
+    await updateSettings({ reminderTime: time });
+    if (settings.reminderEnabled) {
+      const result = await scheduleDailyReminder(time);
+      setReminderNotice(result.message);
     }
   };
 
@@ -142,17 +170,55 @@ export default function SettingsScreen({ navigation }) {
               Daily Check-in Reminder
             </AppText>
             <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
-              Scheduled time: {settings.reminderTime || '20:00'}
+              Gentle nudge at {settings.reminderTime || '20:00'} to reflect on your day.
             </AppText>
           </View>
           <Switch
             value={Boolean(settings.reminderEnabled)}
-            onValueChange={(val) => updateSettings({ reminderEnabled: val })}
+            onValueChange={handleToggleReminder}
             trackColor={{ false: colors.border, true: `${colors.primary}80` }}
             thumbColor={settings.reminderEnabled ? colors.primary : colors.mutedText}
             accessibilityLabel="Toggle daily reminder"
           />
         </View>
+
+        <View style={[styles.timeChipsRow, { marginTop: spacing.sm }]}>
+          {REMINDER_TIMES.map((time) => {
+            const isSelected = (settings.reminderTime || '20:00') === time;
+            return (
+              <TouchableOpacity
+                key={time}
+                onPress={() => handleSelectReminderTime(time)}
+                activeOpacity={0.75}
+                style={[
+                  styles.timeChip,
+                  {
+                    backgroundColor: isSelected ? colors.primary : colors.background,
+                    borderColor: isSelected ? colors.primary : colors.border,
+                    borderRadius: borderRadius.full,
+                  },
+                ]}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={`Reminder time ${time}`}
+              >
+                <AppText
+                  variant="caption"
+                  weight="bold"
+                  color={isSelected ? '#FFFFFF' : colors.text}
+                >
+                  {time}
+                </AppText>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {reminderNotice ? (
+          <AppText variant="caption" color={colors.mutedText} style={{ marginTop: spacing.xs }}>
+            {reminderNotice}
+          </AppText>
+        ) : null}
       </Card>
 
       {/* Section 4: Privacy */}
@@ -290,6 +356,19 @@ const styles = StyleSheet.create({
   navRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  timeChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  timeChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
   },
   button: {
     flexDirection: 'row',
