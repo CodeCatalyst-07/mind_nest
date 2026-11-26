@@ -113,7 +113,6 @@ npx expo-doctor
 
 - [Architecture & Mermaid Diagrams](docs/ARCHITECTURE.md)
 - [Problem Statement #222 Mapping](docs/PROBLEM_STATEMENT_MAPPING.md)
-- [5-Minute Demo Script & Viva Q&A](docs/DEMO_GUIDE.md)
 
 ---
 
