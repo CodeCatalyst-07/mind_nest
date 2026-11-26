@@ -8,6 +8,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS, saveData, loadData, removeData } from '../utils/storage';
 import { toDateKey } from '../utils/dateUtils';
+import { setHapticsEnabled } from '../utils/haptics';
 import {
   createCheckIn,
   createAssessment,
@@ -31,6 +32,11 @@ export function DataProvider({ children }) {
   const [sessions, setSessions] = useState([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Keep haptics utility synchronized with user setting
+  useEffect(() => {
+    setHapticsEnabled(settings.hapticsEnabled !== false);
+  }, [settings.hapticsEnabled]);
 
   // Load all saved data from AsyncStorage on initial app mount
   useEffect(() => {
@@ -211,6 +217,7 @@ export function DataProvider({ children }) {
       removeData(STORAGE_KEYS.GRATITUDE),
       removeData(STORAGE_KEYS.SESSIONS),
       removeData(STORAGE_KEYS.SETTINGS),
+      removeData(STORAGE_KEYS.SUPPORT_DISMISSED_DATE),
     ]);
   }, []);
 
