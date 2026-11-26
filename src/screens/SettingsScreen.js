@@ -225,21 +225,35 @@ export default function SettingsScreen({ navigation }) {
       <AppText variant="caption" weight="bold" color={colors.mutedText} style={styles.sectionLabel}>
         PRIVACY & SECURITY
       </AppText>
-      <Card>
+      <Card
+        onPress={() => {
+          haptics.selection();
+          navigation.navigate('PinSetup', { mode: settings.pinEnabled ? 'disable' : 'setup' });
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={
+          settings.pinEnabled ? '4-Digit PIN Lock is enabled. Tap to turn off.' : '4-Digit PIN Lock is off. Tap to set up.'
+        }
+      >
         <View style={styles.settingRow}>
           <View style={styles.settingInfo}>
             <AppText variant="bodySmall" weight="bold">
               4-Digit PIN Lock
             </AppText>
             <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
-              {settings.pinEnabled ? 'Active — locks when returning from background' : 'Off'}
+              {settings.pinEnabled
+                ? 'Active — tap to turn off with current PIN'
+                : 'Off — tap to create a 4-digit passcode'}
             </AppText>
           </View>
-          <Ionicons
-            name={settings.pinEnabled ? 'lock-closed' : 'lock-open-outline'}
-            size={20}
-            color={settings.pinEnabled ? colors.primary : colors.mutedText}
-          />
+          <View style={styles.pinStatusRight}>
+            <Ionicons
+              name={settings.pinEnabled ? 'lock-closed' : 'lock-open-outline'}
+              size={20}
+              color={settings.pinEnabled ? colors.primary : colors.mutedText}
+            />
+            <Ionicons name="chevron-forward" size={18} color={colors.mutedText} style={{ marginLeft: 6 }} />
+          </View>
         </View>
       </Card>
 
@@ -354,6 +368,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pinStatusRight: {
     flexDirection: 'row',
     alignItems: 'center',
   },

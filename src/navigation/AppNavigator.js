@@ -15,6 +15,7 @@ import BreathingScreen from '../screens/BreathingScreen';
 import GroundingScreen from '../screens/GroundingScreen';
 import GratitudeScreen from '../screens/GratitudeScreen';
 import SupportScreen from '../screens/SupportScreen';
+import PinLockScreen from '../screens/PinLockScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -83,6 +84,13 @@ export default function AppNavigator() {
       <Stack.Screen
         name="Support"
         component={SupportScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="PinSetup"
+        component={PinLockScreen}
         options={{
           headerShown: false,
         }}
