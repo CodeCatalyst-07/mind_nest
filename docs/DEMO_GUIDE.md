@@ -44,3 +44,43 @@ Use this guide to run a smooth 5-minute live demonstration of MindNest for your 
 ### `4:30 – 5:00` • Privacy, Theme & Settings (`SettingsScreen`)
 - **What to tap**: Open **Settings**. Toggle **Dark Mode** (`Light` → `Dark` → `System`), point out **Haptic Feedback**, **Daily Check-in Reminder**, and **4-Digit PIN Lock** (`expo-crypto` SHA-256 + `expo-secure-store`).
 - **What to say**: *"Finally, students can switch themes, toggle haptics, set daily reminder times, and lock the app with a 4-digit PIN whose SHA-256 hash lives in `SecureStore` and locks again automatically 30 seconds after leaving the app."*
+
+---
+
+## 12 Likely Viva Questions & Honest Answers
+
+1. **Why does MindNest have no backend or login?**
+   Mental health entries are deeply personal, and requiring accounts or uploading mood logs to a remote database discourages students from being honest—and adds server hosting and data-protection liabilities. A local-first design lets students use MindNest immediately with zero Wi-Fi or sign-up friction.
+
+2. **Why did you choose `AsyncStorage` instead of SQLite or Firebase?**
+   Our data volume per student is small (a few hundred daily check-in objects, weekly assessments, gratitude entries, and tool sessions as JSON arrays under `@mindnest_*` keys in `src/utils/storage.js`). `AsyncStorage` works natively in Expo Go without extra native database setup and is easy to inspect, back up, or reset cleanly.
+
+3. **Why use React Context (`DataContext`) instead of Redux or Zustand?**
+   MindNest has a single global data store (`checkIns`, `assessments`, `gratitudeEntries`, `sessions`, `settings`) with straightforward async reads and array updates. React's built-in `createContext` + `useCallback` + `useState` in `src/context/DataContext.js` handles this with zero extra dependencies and stays simple to trace and explain.
+
+4. **How does the weekly questionnaire scoring work?**
+   Each of the 5 items in `src/data/questionnaire.js` scores `0` (*Never*) to `5` (*Always*), giving a `rawScore` between `0` and `25` (`calculateRawScore` in `src/utils/scoring.js`). Multiplying by `4` (`calculatePercentage`) yields a `0–100%` score mapped into four categories: `72–100` (*Thriving*), `50–71` (*Doing okay*), `29–49` (*Needs attention*), and `0–28` (*Low*).
+
+5. **How clinically valid is this assessment?**
+   MindNest's items and scoring formula are adapted from the World Health Organization's **WHO-5 Well-Being Index**, which is widely validated in clinical literature—however, our specific mobile adaptation has **not** undergone clinical validation. For that reason, `QuestionnaireScreen.js` and `SupportScreen.js` explicitly state it is an educational self-check, not a medical diagnosis.
+
+6. **How is student privacy handled, and how strong is the PIN lock?**
+   All check-ins, notes, gratitude entries, and assessment scores remain on-device inside `AsyncStorage` (unencrypted JSON, wiped if the app is uninstalled). For casual phone-sharing privacy, `src/utils/pinLock.js` hashes the optional 4-digit PIN using salted **SHA-256** via `expo-crypto` and stores only the digest in `expo-secure-store`, while `App.js` re-locks via `AppState` after `30` seconds in the background. It is a local convenience lock, not enterprise-grade encryption of the `AsyncStorage` database itself.
+
+7. **How are the charts drawn without a third-party charting library?**
+   Every chart (`MoodLineChart`, `SleepBarChart`, `AssessmentTrendChart`, `ScoreGauge`) is rendered directly using `react-native-svg` primitives (`Svg`, `Path`, `Rect`, `Circle`, `Line`, `LinearGradient`), while `MoodHeatmap` and `TagFrequencyChart` use themed React Native Flexbox grids and progress bars. We convert mood (`1–5`), sleep (`0–12h`), and scores (`0–100%`) into $(x, y)$ pixel coordinates relative to measured `onLayout` container width, inverting $Y$ because SVG `y = 0` starts at the top.
+
+8. **How are your unit tests organised?**
+   All 7 test suites live in `__tests__/` (`dateUtils`, `models`, `scoring`, `stats`, `insights`, `toolkit`, `support`) and run under `jest` with `jest-expo` (`npm test`). Because pure calculations and date/model logic are decoupled from React components inside `src/utils/` and `src/data/`, every formula, clamping rule, streak boundary, and threshold is tested deterministically.
+
+9. **What was the hardest part to get right?**
+   Handling **local calendar dates and streak/timer state reliably**. Early date arithmetic can easily shift check-ins across days due to UTC conversion, so `toDateKey()` in `src/utils/dateUtils.js` formats strictly in local time; similarly, the `BreathingScreen` interval had to use functional state updates plus `useEffect` unmount cleanup so phase countdowns, haptics, and `expo-keep-awake` never leak if the student leaves mid-session.
+
+10. **What would you add next if this project continued?**
+    Encrypted local database storage (such as encrypted SQLite), JSON/PDF export so students can optionally share a self-check summary with a campus counsellor, customizable coping exercises (such as audio-guided meditation or custom breathing durations), and institutional opt-in anonymous aggregate reporting for colleges.
+
+11. **How does the app respond when a student seems to be struggling?**
+    Two gentle triggers exist without being alarmist: (1) scoring **Needs attention** (`29–49%`) or **Low** (`0–28%`) on the WHO-5 questionnaire shows a supportive card recommending a trusted person plus a button to **View Support Resources**; and (2) `detectLowMoodStreak()` in `src/utils/support.js` detects `3` consecutive days of mood `1` or `2` and displays a dismissible `SupportCard` on **Home** with a one-tap dial to **Tele-MANAS (`14416`)**, **112** emergency guidance, and conversation starters on `SupportScreen`.
+
+12. **How do animations and notifications stay compatible with Expo Go?**
+    All animations (tab card press scale, screen entrance transitions, chart draw-ins, `BreathingCircle`, and wrong-PIN shake) use React Native's built-in `Animated` API rather than `react-native-reanimated` or custom native code. Hardware helpers (`expo-haptics`, `expo-notifications`, `expo-keep-awake`, `expo-secure-store`) wrap native calls in `try/catch` blocks so unsupported environments or Expo Go limitations degrade gracefully without crashing.
