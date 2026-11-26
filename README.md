@@ -125,6 +125,27 @@ MindNest's **Toolkit** tab provides quick, practical self-help exercises tailore
 
 ---
 
+## 🛡️ Safety, Privacy and Settings
+
+MindNest includes a non-alarming mental health safety net, local-first security controls, and customizable student preferences.
+
+### Safety Net & Helpline Resources (`support.js` & `SupportScreen`)
+- **Consecutive Low-Mood Detection (`detectLowMoodStreak`)**: Automatically checks if the most recent 3 consecutive calendar days (anchoring on today, or yesterday if today is not yet logged) have mood ratings of `1` or `2`. When triggered, a gentle, dismissible `SupportCard` appears on Home offering a one-tap call to Tele-MANAS or further resources.
+- **Helplines & Trusted Contacts (`src/data/support.js`)**: Centralizes Tele-MANAS (`14416` / `1-800-891-4416`, free 24x7 national helpline), India Emergency (`112` for immediate danger), trusted-person suggestions (parent, friend, teacher, campus counsellor), and sample conversation starters. *Verify all helpline phone numbers before public release.*
+- **Multiple Entry Points**: Accessible from Home (when triggered), low WHO-5 assessment result screens, the Coping Toolkit footer, and Settings.
+
+### Security & Privacy (`pinLock.js` & `OnboardingScreen`)
+- **SHA-256 PIN Lock**: Optional 4-digit PIN lock hashes the passcode with a salt via `expo-crypto` and stores only the SHA-256 digest in `expo-secure-store`—never the plaintext PIN.
+- **Auto-Lock on Background Resume**: Tracks `AppState` background transitions and automatically re-locks the app if left in the background for 30 seconds or longer.
+- **First-Launch Onboarding**: 3 swipeable introductory screens clearly communicate MindNest's purpose, local-only data storage, and self-help scope.
+
+### Settings & Resilience (`SettingsScreen` & `ErrorBoundary`)
+- **Theme & Haptics**: Override appearance (`System` / `Light` / `Dark`) in `ThemeContext` and toggle device haptic feedback globally via `haptics.js`.
+- **Daily Check-in Reminders**: Configurable reminder time and toggle powered by `expo-notifications` with safe fallbacks for Expo Go.
+- **Error Boundary & Hidden Developer Tools**: Root `ErrorBoundary` protects against render crashes, and demo/seed controls are tucked safely behind 5 taps on the version number in the About section.
+
+---
+
 ## 🚀 How to Run
 
 1. **Install dependencies**:
