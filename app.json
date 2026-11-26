@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.arnav.mindnest",
       "adaptiveIcon": {
         "backgroundColor": "#CCFBF1",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -26,6 +27,11 @@
       "expo-font",
       "expo-status-bar",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "e112ad73-14c7-4ec2-871c-dfd8863a86c7"
+      }
+    }
   }
 }
