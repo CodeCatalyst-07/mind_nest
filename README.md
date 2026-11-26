@@ -1,163 +1,43 @@
 # MindNest 🌱
 
-> A student mental well-being companion app built with React Native and Expo (Expo Go).
+> An offline-first student mental well-being companion built with React Native and Expo (Expo Go).
 
-MindNest helps college students track their daily moods, complete weekly wellness questionnaires, observe emotional trends, and access grounding coping tools during stressful academic periods.
-
----
-
-## 📱 Tech Stack
-
-- **Framework**: React Native with [Expo](https://expo.dev) (Expo Go compatible)
-- **Language**: JavaScript (ES6+)
-- **Navigation**: React Navigation (Bottom Tabs + Native Stack)
-- **Styling & Theme**: Custom ThemeContext supporting dynamic Light & Dark modes
-- **Typography**: Google Fonts [Nunito](https://fonts.google.com/specimen/Nunito) (Regular, SemiBold, Bold)
-- **Icons**: `@expo/vector-icons` (Ionicons)
+MindNest was created for **College Problem Statement #222**: *"Mental health and well-being surveillance, assessment and tracking solution among children"* (**Ministry of Education — Smart Education**, software edition). It gives students a calm, private, stigma-free space on their own phone to reflect daily, complete a short weekly well-being self-check, spot sleep/mood patterns, practice calming exercises, and reach verified human support whenever life feels heavy.
 
 ---
 
-## 📁 Project Structure
+## 🎯 The Problem It Solves
 
-```text
-MindNest/
-├── App.js                     # Root entry point: loads fonts and providers
-├── app.json                   # Expo configuration
-├── package.json               # Dependencies and scripts
-└── src/
-    ├── components/            # Reusable UI primitives
-    │   ├── Screen.js          # Safe area container with theme background
-    │   ├── AppText.js         # Typography component supporting variants
-    │   └── Card.js            # Rounded surface card with elevation/shadow
-    ├── navigation/            # Navigation configuration
-    │   ├── AppNavigator.js    # Root Native Stack (Tabs + full-screen routes)
-    │   └── TabNavigator.js    # 4-tab bottom navigation
-    ├── screens/               # Screen components
-    │   ├── HomeScreen.js      # Welcome screen with daily activity shortcuts
-    │   ├── CheckInScreen.js   # Daily mood check-in & 5-level mood preview
-    │   ├── QuestionnaireScreen.js # Weekly reflection questions
-    │   ├── TrendsScreen.js    # Mood history and trends
-    │   ├── ToolkitScreen.js   # Coping mechanisms and breathing tools
-    │   └── SettingsScreen.js  # Theme status and app info
-    ├── theme/                 # Design tokens and context
-    │   ├── colors.js          # Light, dark, and 5-level mood palettes
-    │   ├── typography.js      # Font scales and families
-    │   ├── spacing.js         # Spacing and border radii
-    │   └── ThemeContext.js    # ThemeProvider and useTheme() hook
-    ├── utils/                 # Helper functions (placeholder)
-    └── data/                  # Static question and prompt data (placeholder)
-```
+Academic pressure, irregular sleep, social transitions, and exam stress affect students every week—yet most either notice burnout only after it peaks or avoid formal tools due to privacy concerns and clinical stiffness. MindNest addresses this with four calm pillars:
+
+- **Low-friction daily reflection**: A 60-second 5-step check-in instead of intimidating forms.
+- **Structured self-checks**: Standardized weekly check-ins adapted from the WHO-5 Well-Being Index.
+- **Actionable coping tools right beside the data**: Guided breathing, 5-4-3-2-1 sensory grounding, and gratitude journaling.
+- **Privacy by default**: Everything lives locally on the student's phone with no accounts, analytics, or remote servers.
 
 ---
 
-## 📋 Weekly Well-Being Assessment (WHO-5)
+## ✨ Features
 
-MindNest's weekly self-reflection tool is adapted from the **WHO-5 Well-Being Index** developed by the World Health Organization. The WHO-5 is one of the most widely used questionnaires for assessing subjective psychological well-being.
+### 📋 Assess
+- **Weekly Well-Being Check (`QuestionnaireScreen`)**: 5 positive reflection items adapted from the **WHO-5 Well-Being Index** (`QUESTIONNAIRE_ITEMS` in `src/data/questionnaire.js`), scored `0–5` (*Never* to *Always*).
+- **Automated Scoring & Categorization (`src/utils/scoring.js`)**: Computes raw score (`0–25`), percentage (`rawScore * 4`, `0–100%`), and tier (*Thriving* `72–100%`, *Doing okay* `50–71%`, *Needs attention* `29–49%`, *Low* `0–28%`) displayed with an animated circular `ScoreGauge`.
+- **Home Weekly Status (`HomeScreen`)**: Tracks days since the last assessment (`daysAgo`) and highlights a **WEEKLY CHECK DUE** badge after 7+ days.
 
-### Questions & Scoring Method
-Students evaluate 5 positive statements over the last two weeks on a 6-point scale:
-- **Always** (5)
-- **Very often** (4)
-- **Often** (3)
-- **Sometimes** (2)
-- **Rarely** (1)
-- **Never** (0)
+### 📊 Track
+- **5-Step Daily Check-in (`CheckInScreen`)**: Logs mood (`1–5`), energy (`1–5`), sleep (`0–12` hours in `0.5h` steps), context tags (`Studies`, `Friends`, `Family`, `Sleep`, `Health`, `Exercise`, `Social media`), and an optional reflection note, with edit-today support and discard protection.
+- **Trends Dashboard (`TrendsScreen`)**: Switch between **Last 7 Days** and **Last 30 Days** (`SegmentedControl`), count-up summary cards (Average Mood, Average Sleep, Consecutive Streak), custom `react-native-svg` visualizations (`MoodLineChart`, `MoodHeatmap`, `SleepBarChart`, `TagFrequencyChart`, `AssessmentTrendChart`), and recent entry management with delete confirmation.
+- **Non-Clinical Pattern Insights (`src/utils/insights.js`)**: Observes gentle patterns such as mood differences on `< 6h` vs `>= 7h` sleep nights (when $\ge 3$ entries exist in each group), best weekday for mood, top tag on low-mood days, and streak encouragement.
 
-The **raw score** ranges from 0 to 25. This raw score is multiplied by 4 to generate a standardized **percentage score** from 0% to 100%, classified into 4 tiers:
-- **72% – 100%**: *Thriving* (High vitality and positive spirits)
-- **50% – 71%**: *Doing okay* (Moderate, stable well-being)
-- **29% – 49%**: *Needs attention* (Elevated stress or low vitality)
-- **0% – 28%**: *Low* (Significantly reduced well-being)
+### 🧰 Improve
+- **Mood-Based Recommendation (`src/utils/toolkit.js`)**: Suggests a tailored tool on the **Toolkit** tab based on today's mood (or a quick 1-minute breathing reset if today has not been logged yet).
+- **Guided Breathing (`BreathingScreen` + `BreathingCircle`)**: Animated expanding/holding/shrinking guide across three rhythms (**Calm 4-6**, **Box 4-4-4-4**, **Relax 4-7-8**) for `1`, `2`, or `5` minutes with phase haptics and `expo-keep-awake`.
+- **5-4-3-2-1 Sensory Grounding (`GroundingScreen`)**: Interactive step-by-step sensory counter (`5 See` → `4 Feel` → `3 Hear` → `2 Smell` → `1 Taste`) with tap bounce and haptic cues.
+- **Gratitude Journal (`GratitudeScreen`)**: Rotating friendly prompts, `100`-character limit, `3`-entries-per-day cap, date-grouped history, and confirmed delete.
+- **Weekly Practice Summary (`summarizeSessions`)**: Summarizes total sessions, minutes, and per-tool counts over the past 7 days.
 
-> [!NOTE]
-> **Non-Diagnostic Disclaimer**: The MindNest questionnaire is strictly an educational self-check and reflective tool for college students to monitor their personal trends. It is **not** a clinical diagnostic instrument. Students experiencing prolonged distress are warmly encouraged to consult campus counseling services, healthcare professionals, or trusted adults.
-
----
-
-## 📊 Trends, Insights & Analytics
-
-MindNest features an insights dashboard on the **Trends** tab that transforms raw daily check-ins and weekly assessment scores into visual charts and plain-language reflections.
-
-### Pure SVG Data Visualizations (`react-native-svg`)
-All charts are custom-rendered directly with `react-native-svg` and animated using React Native's built-in `Animated` API without heavy third-party chart libraries:
-- **Mood Trajectory (`MoodLineChart`)**: A continuous trendline with smooth animated draw-in, gradient area fill, and mood-colored data nodes (levels 1–5).
-- **Monthly Mood Calendar (`MoodHeatmap`)**: A 7-column calendar grid showing every day of the current month colored by that day's recorded mood rating.
-- **Sleep Duration vs. Mood (`SleepBarChart`)**: Vertical duration bars (0–12h) dynamically colored by that day's mood rating, with a dashed reference line at 7 hours (recommended student sleep benchmark).
-- **Tag Frequency Distribution (`TagFrequencyChart`)**: Horizontal bars showing the student's top contextual tags and activities.
-- **WHO-5 Trajectory (`AssessmentTrendChart`)**: Long-term percentage trendline mapped alongside faint reference threshold lines (72% *Thriving*, 50% *Doing okay*, 29% *Needs attention*).
-
-### Statistical Calculations (`stats.js`)
-- **Range Filtering**: Slices data by calendar date boundaries (Last 7 Days vs. Last 30 Days).
-- **Averages**: Calculates arithmetic means for mood rating, sleep hours, and energy level with 1 decimal precision.
-- **Streak Logic**: Tracks consecutive check-in days up to today. If today has not been logged yet, an active streak ending yesterday remains intact so the streak is not prematurely lost before bedtime.
-
-### Plain-Language Non-Clinical Insights (`insights.js`)
-Reflective insights detect gentle correlational patterns in student life without medical or diagnostic assertions:
-1. **Sleep & Mood Link**: Compares average mood on nights with 7+ hours of sleep against nights with under 6 hours (triggers when $\ge 3$ entries exist in both groups).
-2. **Best Weekday**: Determines which day of the week exhibits the highest average mood score (requires $\ge 4$ multi-day entries).
-3. **Common Stressors**: Identifies the most recurring context tags on lower-mood days ($\text{mood} \le 2$, $\ge 3$ days).
-4. **Consistency Encouragement**: Celebrates multi-day check-in milestones to encourage habit formation.
-
----
-
-## 🧰 Coping Toolkit
-
-MindNest's **Toolkit** tab provides quick, practical self-help exercises tailored to college life and the student's daily mood rating.
-
-### Included Tools
-1. **Guided Breathing (`BreathingScreen` & `BreathingCircle`)**:
-   - Features three paced rhythms: **Calm (4-6)**, **Box (4-4-4-4)**, and **Relax (4-7-8)** for **1, 2, or 5 minutes**.
-   - Animated breathing circle expands on inhale, holds steady, and contracts smoothly on exhale with haptic cues at every phase change and `expo-keep-awake` keeping the screen active while running.
-   - Displays a safety reminder (*"If you feel dizzy, stop and breathe normally."*) and cleans up all timers/animations automatically if exited mid-session.
-2. **5-4-3-2-1 Grounding (`GroundingScreen`)**:
-   - Interactive sensory check-in guiding the student through **5 things you can see**, **4 you can feel**, **3 you can hear**, **2 you can smell**, and **1 you can taste**.
-   - Includes a progress bar and animated tap feedback for each noticed item before advancing.
-3. **Gratitude Journal (`GratitudeScreen`)**:
-   - Rotating friendly prompts (max 100 characters per reflection) with a **3 entries per day** limit to keep reflections intentional.
-   - Groups entries by calendar date and supports confirmed deletion.
-
-### Mood-Based Recommendations & Usage Summary
-- **`getRecommendation(todayMood)`**: Automatically suggests Breathing or Grounding on low/stressed mood days (1–2), Grounding on neutral days (3), Gratitude on positive days (4–5), or a quick 1-minute breathing pause if today's check-in hasn't been logged yet.
-- **Weekly Usage Summary (`summarizeSessions`)**: Tracks completed `ToolSession` records locally in AsyncStorage and totals sessions, minutes, and per-tool counts over the past 7 days.
-
-> [!NOTE]
-> **Self-Help Disclaimer**: All exercises in the Coping Toolkit are supportive self-help practices intended for everyday stress management and mindfulness. They are **not** medical or psychological treatment.
-
----
-
-## 🛡️ Safety, Privacy and Settings
-
-MindNest includes a non-alarming mental health safety net, local-first security controls, and customizable student preferences.
-
-### Safety Net & Helpline Resources (`support.js` & `SupportScreen`)
-- **Consecutive Low-Mood Detection (`detectLowMoodStreak`)**: Automatically checks if the most recent 3 consecutive calendar days (anchoring on today, or yesterday if today is not yet logged) have mood ratings of `1` or `2`. When triggered, a gentle, dismissible `SupportCard` appears on Home offering a one-tap call to Tele-MANAS or further resources.
-- **Helplines & Trusted Contacts (`src/data/support.js`)**: Centralizes Tele-MANAS (`14416` / `1-800-891-4416`, free 24x7 national helpline), India Emergency (`112` for immediate danger), trusted-person suggestions (parent, friend, teacher, campus counsellor), and sample conversation starters. *Verify all helpline phone numbers before public release.*
-- **Multiple Entry Points**: Accessible from Home (when triggered), low WHO-5 assessment result screens, the Coping Toolkit footer, and Settings.
-
-### Security & Privacy (`pinLock.js` & `OnboardingScreen`)
-- **SHA-256 PIN Lock**: Optional 4-digit PIN lock hashes the passcode with a salt via `expo-crypto` and stores only the SHA-256 digest in `expo-secure-store`—never the plaintext PIN.
-- **Auto-Lock on Background Resume**: Tracks `AppState` background transitions and automatically re-locks the app if left in the background for 30 seconds or longer.
-- **First-Launch Onboarding**: 3 swipeable introductory screens clearly communicate MindNest's purpose, local-only data storage, and self-help scope.
-
-### Settings & Resilience (`SettingsScreen` & `ErrorBoundary`)
-- **Theme & Haptics**: Override appearance (`System` / `Light` / `Dark`) in `ThemeContext` and toggle device haptic feedback globally via `haptics.js`.
-- **Daily Check-in Reminders**: Configurable reminder time and toggle powered by `expo-notifications` with safe fallbacks for Expo Go.
-- **Error Boundary & Hidden Developer Tools**: Root `ErrorBoundary` protects against render crashes, and demo/seed controls are tucked safely behind 5 taps on the version number in the About section.
-
----
-
-## 🚀 How to Run
-
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-2. **Start Expo development server**:
-   ```bash
-   npx expo start
-   ```
-
-3. **Open on your device**:
-   - Install the **Expo Go** app on your iOS or Android phone.
-   - Scan the QR code displayed in your terminal with your phone camera (iOS) or the Expo Go app (Android).
+### 🛡️ Safety & Privacy
+- **Consecutive Low-Mood Safety Net (`detectLowMoodStreak`)**: Detects 3 consecutive low-mood days (`mood` `1` or `2`, anchoring on today or yesterday) and surfaces a calm, dismissible `SupportCard` on Home.
+- **Helplines & Trusted Contacts (`SupportScreen` + `src/data/support.js`)**: Direct dial actions for **Tele-MANAS** (`14416` / `1-800-891-4416`, free 24x7) and **112** crisis guidance, trusted-person prompts, and conversation starters—accessible from Home (when triggered), low WHO-5 result screens, Toolkit, and Settings.
+- **On-Device PIN Lock (`PinLockScreen` + `src/utils/pinLock.js`)**: Optional 4-digit passcode hashed with salted SHA-256 (`expo-crypto`) in `expo-secure-store`, plus automatic re-lock via `AppState` after `30` seconds in the background.
+- **Customizable Preferences (`SettingsScreen`)**: `System` / `Light` / `Dark` theme switcher, global haptic toggle, local daily reminder (`expo-notifications`), 3-slide first-launch onboarding, root `ErrorBoundary`, and hidden developer tools (5 taps on version in About).
