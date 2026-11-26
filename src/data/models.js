@@ -30,6 +30,9 @@
  *
  * Settings:
  * {
+ *   themeMode: string,        // 'system' | 'light' | 'dark'
+ *   hapticsEnabled: boolean,  // Whether tactile haptic feedback is enabled
+ *   onboardingDone: boolean,  // Whether user completed initial onboarding
  *   reminderEnabled: boolean, // Daily check-in notification reminder toggle
  *   reminderTime: string,    // Reminder time in "HH:mm" (e.g. "20:00")
  *   pinEnabled: boolean      // Optional privacy PIN protection
@@ -57,6 +60,9 @@ import { toDateKey } from '../utils/dateUtils.js';
 
 // Default user settings
 export const DEFAULT_SETTINGS = {
+  themeMode: 'system',
+  hapticsEnabled: true,
+  onboardingDone: false,
   reminderEnabled: false,
   reminderTime: '20:00', // 8:00 PM
   pinEnabled: false,

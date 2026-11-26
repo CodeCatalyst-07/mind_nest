@@ -1,8 +1,8 @@
 /**
  * App.js
  * Purpose: Application root entry point.
- * Preloads Google Nunito fonts, initializes ThemeProvider, DataProvider,
- * and NavigationContainer, and ensures nothing renders until fonts & data finish loading.
+ * Preloads Google Nunito fonts, initializes DataProvider, ThemeProvider (synced with
+ * settings.themeMode), and NavigationContainer.
  */
 
 import React from 'react';
@@ -19,12 +19,11 @@ import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { DataProvider, useData } from './src/context/DataContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
-// Inner component that consumes both theme and data contexts
+// Renders navigation once fonts and AsyncStorage data are ready
 function MainContent() {
   const { isDark } = useTheme();
   const { isLoading } = useData();
 
-  // Keep showing nothing (or splash) until data has finished loading from AsyncStorage
   if (isLoading) {
     return null;
   }
@@ -37,25 +36,31 @@ function MainContent() {
   );
 }
 
+// Connects DataContext settings.themeMode into ThemeProvider
+function ThemedApp() {
+  const { settings } = useData();
+
+  return (
+    <ThemeProvider themeMode={settings?.themeMode || 'system'}>
+      <MainContent />
+    </ThemeProvider>
+  );
+}
+
 export default function App() {
-  // 1. Preload Google Nunito fonts
   const [fontsLoaded] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,
     Nunito_700Bold,
   });
 
-  // 2. Show nothing (or splash) until custom fonts are fully loaded
   if (!fontsLoaded) {
     return null;
   }
 
-  // 3. Wrap entire app with ThemeProvider and DataProvider
   return (
-    <ThemeProvider>
-      <DataProvider>
-        <MainContent />
-      </DataProvider>
-    </ThemeProvider>
+    <DataProvider>
+      <ThemedApp />
+    </DataProvider>
   );
 }

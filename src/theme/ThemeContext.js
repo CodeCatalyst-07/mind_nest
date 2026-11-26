@@ -1,7 +1,8 @@
 /**
  * src/theme/ThemeContext.js
- * Purpose: Provides a ThemeContext, ThemeProvider, and useTheme hook.
- * Automatically adapts colors based on the user device's light/dark mode setting.
+ * Purpose: Provides ThemeContext, ThemeProvider, and useTheme hook.
+ * Respects user preference ('system' | 'light' | 'dark') from settings, falling back
+ * to the device system appearance when set to 'system'.
  */
 
 import React, { createContext, useContext } from 'react';
@@ -10,17 +11,20 @@ import { lightColors, darkColors } from './colors';
 import { typography } from './typography';
 import { spacing, borderRadius } from './spacing';
 
-// Create the Context with a default empty state
 const ThemeContext = createContext();
 
-export function ThemeProvider({ children }) {
-  // Listen to system color scheme ('light' or 'dark')
+export function ThemeProvider({ children, themeMode = 'system' }) {
   const systemColorScheme = useColorScheme();
-  const isDark = systemColorScheme === 'dark';
+  const effectiveScheme =
+    themeMode === 'light' || themeMode === 'dark'
+      ? themeMode
+      : systemColorScheme || 'light';
+  const isDark = effectiveScheme === 'dark';
 
   const theme = {
     isDark,
-    colorScheme: systemColorScheme || 'light',
+    themeMode,
+    colorScheme: effectiveScheme,
     colors: isDark ? darkColors : lightColors,
     typography,
     spacing,
