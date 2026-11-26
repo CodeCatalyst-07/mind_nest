@@ -1,15 +1,36 @@
 /**
  * src/components/Card.js
- * Purpose: Rounded surface card component with soft shadows and borders.
- * Can be used as a static content container or as a clickable card with onPress.
+ * Purpose: Rounded surface card component with soft shadows, borders, and subtle press animation.
+ * Can be used as a static content container or as an interactive clickable card with onPress.
  */
 
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import React, { useRef } from 'react';
+import { View, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 
-export default function Card({ children, style, onPress, ...props }) {
+export default function Card({ children, style, onPress, onPressIn, onPressOut, ...props }) {
   const { colors, spacing, borderRadius, isDark } = useTheme();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = (e) => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      friction: 8,
+      tension: 150,
+      useNativeDriver: true,
+    }).start();
+    onPressIn?.(e);
+  };
+
+  const handlePressOut = (e) => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 6,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
+    onPressOut?.(e);
+  };
 
   const cardStyles = [
     styles.card,
@@ -20,7 +41,6 @@ export default function Card({ children, style, onPress, ...props }) {
       padding: spacing.md,
       marginBottom: spacing.md,
     },
-    // Gentle subtle shadow that works on both iOS and Android
     Platform.select({
       ios: {
         shadowColor: isDark ? '#000000' : '#0F172A',
@@ -29,7 +49,7 @@ export default function Card({ children, style, onPress, ...props }) {
         shadowRadius: 8,
       },
       android: {
-        elevation: isDark ? 2 : 2,
+        elevation: 2,
       },
     }),
     style,
@@ -37,14 +57,18 @@ export default function Card({ children, style, onPress, ...props }) {
 
   if (onPress) {
     return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={onPress}
-        style={cardStyles}
-        {...props}
-      >
-        {children}
-      </TouchableOpacity>
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          style={cardStyles}
+          {...props}
+        >
+          {children}
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 

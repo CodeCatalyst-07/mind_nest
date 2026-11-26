@@ -1,11 +1,11 @@
 /**
  * src/components/AppButton.js
  * Purpose: Reusable button component supporting primary, secondary, and outline variants.
- * Guarantees accessible minimum touch targets (>= 48px) and a smooth disabled state.
+ * Guarantees accessible minimum touch targets (>= 48px), disabled states, and spring press scale.
  */
 
-import React from 'react';
-import { TouchableOpacity, StyleSheet, ActivityIndicator, View } from 'react-native';
+import React, { useRef } from 'react';
+import { TouchableOpacity, StyleSheet, ActivityIndicator, View, Animated } from 'react-native';
 import AppText from './AppText';
 import { useTheme } from '../theme/ThemeContext';
 
@@ -19,8 +19,31 @@ export default function AppButton({
   style,
   textStyle,
   accessibilityLabel,
+  accessibilityHint,
 }) {
   const { colors, borderRadius } = useTheme();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const isDisabled = disabled || loading;
+
+  const handlePressIn = () => {
+    if (isDisabled) return;
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      friction: 8,
+      tension: 160,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 6,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
+  };
 
   // Determine background and text colors based on variant
   let backgroundColor = colors.primary;
@@ -43,44 +66,55 @@ export default function AppButton({
     textColor = colors.mutedText;
   }
 
+  const {
+    backgroundColor: customBg,
+    borderColor: customBorderColor,
+    borderWidth: customBorderWidth,
+    ...layoutStyle
+  } = StyleSheet.flatten(style) || {};
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.75}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel || title}
-      accessibilityState={{ disabled: disabled || loading }}
-      style={[
-        styles.button,
-        {
-          backgroundColor,
-          borderColor,
-          borderWidth,
-          borderRadius: borderRadius.md,
-          opacity: disabled ? 0.45 : 1,
-        },
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator size="small" color={textColor} />
-      ) : (
-        <View style={styles.contentRow}>
-          {icon ? <View style={styles.iconContainer}>{icon}</View> : null}
-          <AppText
-            variant="heading"
-            style={[
-              styles.text,
-              { color: textColor },
-              textStyle,
-            ]}
-          >
-            {title}
-          </AppText>
-        </View>
-      )}
-    </TouchableOpacity>
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, layoutStyle]}>
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={isDisabled}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel || title}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled: isDisabled }}
+        style={[
+          styles.button,
+          {
+            backgroundColor: customBg || backgroundColor,
+            borderColor: customBorderColor || borderColor,
+            borderWidth: customBorderWidth !== undefined ? customBorderWidth : borderWidth,
+            borderRadius: borderRadius.md,
+            opacity: disabled ? 0.45 : 1,
+          },
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color={textColor} />
+        ) : (
+          <View style={styles.contentRow}>
+            {icon ? <View style={styles.iconContainer}>{icon}</View> : null}
+            <AppText
+              variant="heading"
+              style={[
+                styles.text,
+                { color: textColor },
+                textStyle,
+              ]}
+            >
+              {title}
+            </AppText>
+          </View>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
