@@ -7,7 +7,7 @@
  *   - 'disable': Requires current PIN before turning off the PIN lock.
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
@@ -42,7 +42,7 @@ export default function PinLockScreen({
   const [isBusy, setIsBusy] = useState(false);
 
   // Horizontal shake animation for wrong PIN feedback
-  const shakeAnim = useRef(new Animated.Value(0)).current;
+  const [shakeAnim] = useState(() => new Animated.Value(0));
 
   const triggerShake = (message) => {
     haptics.medium();

@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Animated, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Screen from '../components/Screen';
@@ -23,7 +23,6 @@ import { QUESTIONNAIRE_ITEMS, ANSWER_OPTIONS } from '../data/questionnaire';
 import { scoreQuestionnaire, getSupportiveNote } from '../utils/scoring';
 import { toDateKey } from '../utils/dateUtils';
 import { haptics } from '../utils/haptics';
-import { Alert } from 'react-native';
 
 export default function QuestionnaireScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
@@ -42,8 +41,8 @@ export default function QuestionnaireScreen({ navigation }) {
   const hasSavedRef = useRef(false);
 
   // Transition animations
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const slideAnim = useRef(new Animated.Value(0)).current;
+  const [fadeAnim] = useState(() => new Animated.Value(1));
+  const [slideAnim] = useState(() => new Animated.Value(0));
 
   const currentQuestion = QUESTIONNAIRE_ITEMS[currentIndex];
   const selectedValue = answers[currentIndex];

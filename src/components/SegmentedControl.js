@@ -4,7 +4,7 @@
  * Uses React Native's built-in Animated API to glide an active pill indicator between options.
  */
 
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import AppText from './AppText';
 import { useTheme } from '../theme/ThemeContext';
@@ -24,7 +24,7 @@ export default function SegmentedControl({
   );
 
   // Animated position value (0 to options.length - 1)
-  const animValue = useRef(new Animated.Value(activeIndex)).current;
+  const [animValue] = useState(() => new Animated.Value(activeIndex));
 
   useEffect(() => {
     Animated.spring(animValue, {

@@ -4,7 +4,7 @@
  * Used in Trends to display Average Mood, Average Sleep, and Current Streak.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import AppText from './AppText';
 import { useTheme } from '../theme/ThemeContext';
@@ -20,7 +20,7 @@ export default function StatCard({
 }) {
   const { colors, spacing, borderRadius } = useTheme();
   const [displayNumber, setDisplayNumber] = useState(0);
-  const animValue = useRef(new Animated.Value(0)).current;
+  const [animValue] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     // Reset and animate to target value

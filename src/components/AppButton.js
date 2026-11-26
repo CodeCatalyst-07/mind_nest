@@ -4,7 +4,7 @@
  * Guarantees accessible minimum touch targets (>= 48px), disabled states, and spring press scale.
  */
 
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import { TouchableOpacity, StyleSheet, ActivityIndicator, View, Animated } from 'react-native';
 import AppText from './AppText';
 import { useTheme } from '../theme/ThemeContext';
@@ -22,7 +22,7 @@ export default function AppButton({
   accessibilityHint,
 }) {
   const { colors, borderRadius } = useTheme();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [scaleAnim] = useState(() => new Animated.Value(1));
 
   const isDisabled = disabled || loading;
 

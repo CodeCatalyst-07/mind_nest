@@ -5,7 +5,7 @@
  * with spring feedback and haptics, and logs a ToolSession upon completion.
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
@@ -27,8 +27,12 @@ export default function GroundingScreen({ navigation }) {
   const [tapCount, setTapCount] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const startedAtRef = useRef(Date.now());
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const startedAtRef = useRef(0);
+  const [scaleAnim] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    startedAtRef.current = Date.now();
+  }, []);
   const currentStep = GROUNDING_STEPS[stepIndex] || GROUNDING_STEPS[0];
   const isStepComplete = tapCount >= currentStep.count;
   const isLastStep = stepIndex === GROUNDING_STEPS.length - 1;

@@ -4,7 +4,7 @@
  * Visualizes the 0-100% WHO-5 score with smooth animated stroke progression.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import AppText from './AppText';
@@ -25,7 +25,7 @@ export default function ScoreGauge({
   const circumference = 2 * Math.PI * radius;
   const clampedScore = Math.max(0, Math.min(100, Number(score) || 0));
 
-  const animValue = useRef(new Animated.Value(0)).current;
+  const [animValue] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.timing(animValue, {
@@ -33,7 +33,7 @@ export default function ScoreGauge({
       duration: 1200,
       useNativeDriver: true,
     }).start();
-  }, [clampedScore]);
+  }, [clampedScore, animValue]);
 
   // Interpolate dash offset from full circumference (0%) to remaining (score%)
   const strokeDashoffset = animValue.interpolate({

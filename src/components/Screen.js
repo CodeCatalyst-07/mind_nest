@@ -4,15 +4,15 @@
  * Includes a subtle fade + slide entrance transition for calm screen transitions.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 
 export default function Screen({ children, style, scrollable = false, disableEntrance = false, ...props }) {
   const { colors, spacing } = useTheme();
-  const fadeAnim = useRef(new Animated.Value(disableEntrance ? 1 : 0)).current;
-  const slideAnim = useRef(new Animated.Value(disableEntrance ? 0 : 10)).current;
+  const [fadeAnim] = useState(() => new Animated.Value(disableEntrance ? 1 : 0));
+  const [slideAnim] = useState(() => new Animated.Value(disableEntrance ? 0 : 10));
 
   useEffect(() => {
     if (disableEntrance) return;

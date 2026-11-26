@@ -4,7 +4,7 @@
  * Uses spring animations for the selected state and applies theme mood colors.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated, Platform } from 'react-native';
 import AppText from './AppText';
 import { MOODS } from '../data/moods';
@@ -33,7 +33,7 @@ export default function MoodSelector({ selectedMood, onSelectMood }) {
 }
 
 function MoodButton({ mood, isSelected, moodColor, onPress }) {
-  const scaleAnim = useRef(new Animated.Value(isSelected ? 1.18 : 1)).current;
+  const [scaleAnim] = useState(() => new Animated.Value(isSelected ? 1.18 : 1));
 
   useEffect(() => {
     Animated.spring(scaleAnim, {
@@ -42,7 +42,7 @@ function MoodButton({ mood, isSelected, moodColor, onPress }) {
       tension: 100,
       useNativeDriver: true,
     }).start();
-  }, [isSelected]);
+  }, [isSelected, scaleAnim]);
 
   return (
     <TouchableOpacity

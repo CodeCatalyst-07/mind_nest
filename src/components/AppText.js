@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { Text } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 
 export default function AppText({

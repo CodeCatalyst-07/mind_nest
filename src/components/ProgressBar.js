@@ -4,7 +4,7 @@
  * Visualizes the user's progress through Mood, Energy, Sleep, and Note steps.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 
@@ -27,7 +27,7 @@ export default function ProgressBar({ currentStep = 0, totalSteps = 4 }) {
 }
 
 function ProgressSegment({ isFilled, primaryColor, trackColor, borderRadius }) {
-  const fillAnim = useRef(new Animated.Value(isFilled ? 1 : 0)).current;
+  const [fillAnim] = useState(() => new Animated.Value(isFilled ? 1 : 0));
 
   useEffect(() => {
     Animated.timing(fillAnim, {
@@ -35,7 +35,7 @@ function ProgressSegment({ isFilled, primaryColor, trackColor, borderRadius }) {
       duration: 250,
       useNativeDriver: false,
     }).start();
-  }, [isFilled]);
+  }, [isFilled, fillAnim]);
 
   const widthInterpolation = fillAnim.interpolate({
     inputRange: [0, 1],

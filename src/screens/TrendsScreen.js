@@ -268,7 +268,7 @@ export default function TrendsScreen({ navigation }) {
                           style={styles.recentNote}
                           numberOfLines={2}
                         >
-                          "{item.note}"
+                          &ldquo;{item.note}&rdquo;
                         </AppText>
                       ) : null}
 

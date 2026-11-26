@@ -4,13 +4,13 @@
  * Can be used as a static content container or as an interactive clickable card with onPress.
  */
 
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 
 export default function Card({ children, style, onPress, onPressIn, onPressOut, ...props }) {
   const { colors, spacing, borderRadius, isDark } = useTheme();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [scaleAnim] = useState(() => new Animated.Value(1));
 
   const handlePressIn = (e) => {
     Animated.spring(scaleAnim, {

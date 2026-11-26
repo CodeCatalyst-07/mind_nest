@@ -5,7 +5,7 @@
  * subtle background reference gridlines, and an animated left-to-right draw-in.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import Svg, {
   Path,
@@ -24,7 +24,7 @@ export default function MoodLineChart({ checkIns = [] }) {
   const [containerWidth, setContainerWidth] = useState(320);
 
   // Animated value for left-to-right draw-in effect
-  const drawAnim = useRef(new Animated.Value(0)).current;
+  const [drawAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     drawAnim.setValue(0);

@@ -122,7 +122,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.statusBadgeRow}>
               <Ionicons name="checkmark-circle" size={18} color={moodColor} />
               <AppText variant="caption" style={{ marginLeft: 6, fontWeight: '700', color: moodColor }}>
-                TODAY'S CHECK-IN LOGGED
+                TODAY&apos;S CHECK-IN LOGGED
               </AppText>
             </View>
             <TouchableOpacity
@@ -184,7 +184,7 @@ export default function HomeScreen({ navigation }) {
               numberOfLines={2}
               style={styles.noteSnippet}
             >
-              "{todayCheckIn.note}"
+              &ldquo;{todayCheckIn.note}&rdquo;
             </AppText>
           ) : null}
         </Card>

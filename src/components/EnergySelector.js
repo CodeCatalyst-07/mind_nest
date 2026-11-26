@@ -4,7 +4,7 @@
  * Features progressive animated fills and descriptive labels from "Drained" to "Fully Energised".
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import AppText from './AppText';
 import { useTheme } from '../theme/ThemeContext';
@@ -73,7 +73,7 @@ export default function EnergySelector({ selectedEnergy, onSelectEnergy }) {
 }
 
 function BatterySegment({ level, isFilled, fillColor, onPress }) {
-  const fillAnim = useRef(new Animated.Value(isFilled ? 1 : 0)).current;
+  const [fillAnim] = useState(() => new Animated.Value(isFilled ? 1 : 0));
 
   useEffect(() => {
     Animated.timing(fillAnim, {
@@ -81,7 +81,7 @@ function BatterySegment({ level, isFilled, fillColor, onPress }) {
       duration: 200,
       useNativeDriver: true,
     }).start();
-  }, [isFilled]);
+  }, [isFilled, fillAnim]);
 
   return (
     <TouchableOpacity

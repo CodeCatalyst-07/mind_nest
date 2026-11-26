@@ -5,7 +5,7 @@
  * with clear phase text and countdown seconds centered inside.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 import AppText from './AppText';
 import { useTheme } from '../theme/ThemeContext';
@@ -22,7 +22,7 @@ export default function BreathingCircle({
   isPaused = false,
 }) {
   const { colors } = useTheme();
-  const scaleAnim = useRef(new Animated.Value(MIN_SCALE)).current;
+  const [scaleAnim] = useState(() => new Animated.Value(MIN_SCALE));
   const activeAnimationRef = useRef(null);
 
   useEffect(() => {

@@ -5,7 +5,7 @@
  * includes ambient mood gradient lighting, haptics, edit mode, and discard protection.
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -40,7 +40,7 @@ import { haptics } from '../utils/haptics';
 const TOTAL_STEPS = 4; // Step 0: Mood, 1: Energy, 2: Sleep, 3: Note/Tags. Step 4 is Review.
 
 export default function CheckInScreen({ navigation }) {
-  const { colors, spacing, borderRadius } = useTheme();
+  const { colors, borderRadius } = useTheme();
   const { getTodayCheckIn, saveCheckIn } = useData();
 
   // Check if user is editing an already completed check-in for today
@@ -57,7 +57,7 @@ export default function CheckInScreen({ navigation }) {
   });
 
   // Track initial snapshot to detect unsaved changes for discard prompt
-  const initialSnapshot = useRef(JSON.stringify(draft)).current;
+  const [initialSnapshot] = useState(() => JSON.stringify(draft));
 
   // Navigation steps: 0 (Mood) -> 1 (Energy) -> 2 (Sleep) -> 3 (Notes) -> 4 (Review)
   const [currentStep, setCurrentStep] = useState(0);
@@ -65,8 +65,8 @@ export default function CheckInScreen({ navigation }) {
   const [isSaving, setIsSaving] = useState(false);
 
   // Animations for success view
-  const successScaleAnim = useRef(new Animated.Value(0.3)).current;
-  const successFadeAnim = useRef(new Animated.Value(0)).current;
+  const [successScaleAnim] = useState(() => new Animated.Value(0.3));
+  const [successFadeAnim] = useState(() => new Animated.Value(0));
 
   // Selected mood definition for color tinting
   const activeMoodObj = draft.mood ? getMoodByValue(draft.mood) : null;
@@ -449,7 +449,7 @@ export default function CheckInScreen({ navigation }) {
                       Reflection
                     </AppText>
                     <AppText variant="body" color={colors.mutedText}>
-                      "{draft.note.trim()}"
+                      &ldquo;{draft.note.trim()}&rdquo;
                     </AppText>
                   </View>
                 ) : null}
