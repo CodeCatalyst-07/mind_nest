@@ -41,3 +41,68 @@ Academic pressure, irregular sleep, social transitions, and exam stress affect s
 - **Helplines & Trusted Contacts (`SupportScreen` + `src/data/support.js`)**: Direct dial actions for **Tele-MANAS** (`14416` / `1-800-891-4416`, free 24x7) and **112** crisis guidance, trusted-person prompts, and conversation starters—accessible from Home (when triggered), low WHO-5 result screens, Toolkit, and Settings.
 - **On-Device PIN Lock (`PinLockScreen` + `src/utils/pinLock.js`)**: Optional 4-digit passcode hashed with salted SHA-256 (`expo-crypto`) in `expo-secure-store`, plus automatic re-lock via `AppState` after `30` seconds in the background.
 - **Customizable Preferences (`SettingsScreen`)**: `System` / `Light` / `Dark` theme switcher, global haptic toggle, local daily reminder (`expo-notifications`), 3-slide first-launch onboarding, root `ErrorBoundary`, and hidden developer tools (5 taps on version in About).
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Runtime & Framework** | React Native `0.88.1` + Expo `~58.0.26` | Cross-platform iOS & Android app running in Expo Go |
+| **Language** | JavaScript (ES6+) | Simple, beginner-friendly single-language codebase |
+| **Navigation** | `@react-navigation/native`, `bottom-tabs`, `native-stack` | 4-tab layout (`MainTabs`) plus 7 full-screen stack routes |
+| **Local Storage** | `@react-native-async-storage/async-storage` | Persists check-ins, assessments, gratitude, sessions, and settings |
+| **Security & Crypto** | `expo-secure-store`, `expo-crypto` | Encrypted storage of the salted SHA-256 PIN digest |
+| **Charts & Graphics** | `react-native-svg` (`15.16.0`) | Pure SVG line, bar, heatmap, and circular gauge visualizations |
+| **Animations & UI** | Built-in `Animated` API, `expo-linear-gradient` | Spring/timing transitions, chart draw-ins, and mood gradients |
+| **Device Integrations** | `expo-haptics`, `expo-keep-awake`, `expo-notifications` | Tactile feedback, active breathing wake lock, and daily reminders |
+| **Typography & Icons** | `@expo-google-fonts/nunito`, `@expo/vector-icons` (Ionicons) | Friendly typography and crisp vector iconography |
+| **Testing & Linting** | `jest`, `jest-expo`, `eslint`, `eslint-config-expo` | Automated unit test suites and code-quality checks |
+
+---
+
+## 📁 Project Structure
+
+```text
+MindNest/
+├── App.js                   # Root entry: loads Nunito fonts, ErrorBoundary, DataProvider, ThemeProvider, PIN/onboarding gates
+├── app.json                 # Expo manifest: app name, slug, version 1.0.0, theme background & adaptive icon colors
+├── eslint.config.js         # Flat ESLint configuration extending eslint-config-expo with Jest test globals
+├── package.json             # Dependencies and npm scripts (start, android, ios, web, test, lint)
+├── assets/                  # App icon, adaptive Android icons, favicon, and splash artwork
+├── __tests__/               # Jest unit test suites for dates, models, scoring, stats, insights, toolkit, and support
+├── docs/                    # Architecture diagrams, Problem Statement #222 mapping, viva demo guide, and screenshots
+└── src/
+    ├── components/          # Reusable UI primitives, selectors, SVG charts, animations, SupportCard, and ErrorBoundary
+    ├── context/             # Global React Context (DataContext) syncing memory state with AsyncStorage
+    ├── data/                # Static app catalogs, model factories, demo data generators, WHO-5 items, and helplines
+    ├── navigation/          # AppNavigator (root native stack) and TabNavigator (4 primary bottom tabs)
+    ├── screens/             # 12 screen views (Home, Trends, Toolkit, Settings, Onboarding, PinLock, CheckIn, Questionnaire, Breathing, Grounding, Gratitude, Support)
+    ├── theme/               # Light, dark, and 5-level mood palettes, typography, spacing, and ThemeContext
+    └── utils/               # Pure business logic (scoring, stats, insights, toolkit, support, dateUtils) and device helpers (storage, haptics, notifications, pinLock)
+```
+
+---
+
+## 🚀 How to Run, Test & Lint
+
+### 1. Run in Expo Go
+```bash
+git clone https://github.com/CodeCatalyst-07/mind_nest.git
+cd mind_nest
+npm install
+npx expo start
+```
+Open the **Expo Go** app on Android (scan the QR code in the terminal) or use the iOS Camera app to open the link in Expo Go.
+
+### 2. Run Unit Tests
+```bash
+npm test
+```
+Runs all 7 Jest test suites under `__tests__/` (`dateUtils`, `models`, `scoring`, `stats`, `insights`, `toolkit`, `support`).
+
+### 3. Run Linter & Expo Health Check
+```bash
+npm run lint
+npx expo-doctor
+```
