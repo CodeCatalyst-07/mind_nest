@@ -242,6 +242,36 @@ export default function ToolkitScreen({ navigation }) {
         ) : null}
       </Card>
 
+      {/* Support Entry Point */}
+      <Card
+        onPress={() => handleOpenTool('Support')}
+        style={{ marginTop: spacing.md, borderColor: colors.accent, borderWidth: 1 }}
+        accessibilityLabel="Need someone to talk to? View free 24x7 support helplines and trusted options"
+      >
+        <View style={styles.toolRow}>
+          <View
+            style={[
+              styles.iconCircle,
+              {
+                backgroundColor: `${colors.accent}20`,
+                borderRadius: borderRadius.md,
+              },
+            ]}
+          >
+            <Ionicons name="heart-outline" size={24} color={colors.accent} />
+          </View>
+          <View style={styles.toolInfo}>
+            <AppText variant="heading" weight="bold" color={colors.text}>
+              Need Someone to Talk To?
+            </AppText>
+            <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+              Free 24x7 Tele-MANAS helpline and trusted support tips.
+            </AppText>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.mutedText} />
+        </View>
+      </Card>
+
       {/* Gentle supportive note */}
       <AppText
         variant="caption"

@@ -14,7 +14,7 @@ import { useData } from '../context/DataContext';
 import { toDateKey } from '../utils/dateUtils';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const { colors, isDark, spacing, borderRadius } = useTheme();
   const { checkIns, saveCheckIn, loadDemoData, clearAllData } = useData();
 
@@ -79,6 +79,20 @@ export default function SettingsScreen() {
         <AppText variant="body" color={colors.mutedText} style={{ marginTop: spacing.xs }}>
           Current Mode: {isDark ? 'Dark Mode 🌙' : 'Light Mode ☀️'} (Matches device setting)
         </AppText>
+      </Card>
+
+      {/* Support & Helplines Entry Point */}
+      <Card onPress={() => navigation.navigate('Support')}>
+        <View style={styles.devHeader}>
+          <Ionicons name="heart-outline" size={20} color={colors.accent} />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <AppText variant="heading">Support & Helplines</AppText>
+            <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2 }}>
+              Free 24x7 Tele-MANAS helpline, 112 crisis guidance, and trusted contacts.
+            </AppText>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.mutedText} />
+        </View>
       </Card>
 
       {/* Developer Tools Card (Phase 2 Verification) */}

@@ -213,6 +213,16 @@ export default function QuestionnaireScreen({ navigation }) {
                   </AppText>
                 </View>
               </View>
+              <AppButton
+                title="View Support Resources"
+                variant="outline"
+                onPress={() => navigation.navigate('Support')}
+                style={{
+                  marginTop: spacing.md,
+                  borderColor: scoringResult.color,
+                }}
+                textStyle={{ color: scoringResult.color }}
+              />
             </Card>
           ) : null}
 
