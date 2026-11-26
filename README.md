@@ -106,3 +106,32 @@ Runs all 7 Jest test suites under `__tests__/` (`dateUtils`, `models`, `scoring`
 npm run lint
 npx expo-doctor
 ```
+
+---
+
+## 📚 Additional Documentation
+
+- [Architecture & Mermaid Diagrams](docs/ARCHITECTURE.md)
+- [Problem Statement #222 Mapping](docs/PROBLEM_STATEMENT_MAPPING.md)
+- [5-Minute Demo Script & Viva Q&A](docs/DEMO_GUIDE.md)
+
+---
+
+## ⚠️ Limitations and Honest Notes
+
+- **On-device storage only (uninstall deletes data)**: Because MindNest uses zero backend servers, all check-ins, gratitude entries, tool sessions, and assessments stay solely on your phone and will be lost if you uninstall the app or clear its storage.
+- **`AsyncStorage` is not encrypted**: Records stored under `@mindnest_*` keys in `AsyncStorage` are plain JSON and are not encrypted at rest by `AsyncStorage`.
+- **PIN lock is a convenience lock**: Although the 4-digit PIN itself is hashed with salted SHA-256 (`expo-crypto`) and stored in `expo-secure-store`, it serves as a casual screen-privacy barrier rather than strong full-database encryption.
+- **Adapted WHO-5 is not clinically validated here**: The weekly reflection items and `0–100%` tiers are adapted from the WHO-5 Well-Being Index for educational self-reflection and have not undergone formal clinical validation inside MindNest.
+- **Not a medical or emergency service**: MindNest is strictly a self-help companion. It does not diagnose conditions, provide clinical treatment, or replace campus counsellors, doctors, or emergency responders.
+- **Reminders in Expo Go**: Daily notifications powered by `expo-notifications` depend on OS notification permissions and Expo Go runtime rules, so reminders may behave differently or fall back gracefully inside Expo Go.
+- **Verify helpline numbers before release**: All helpline contacts in `src/data/support.js` (`Tele-MANAS 14416 / 1-800-891-4416` and `112`) should be re-verified before publishing to an app store.
+
+---
+
+## 🔮 Future Work
+
+- **Encrypted local storage**: Migrate check-in and journal payloads from plain JSON `AsyncStorage` to an encrypted local SQLite store.
+- **Optional summary export**: Let students export a read-only weekly PDF or JSON report to bring to a campus counsellor if they choose.
+- **Expanded coping library**: Add customizable breathing durations, ambient audio/timer chimes, and short study-break stretch prompts.
+- **Optional institutional check-in portal**: Support an opt-in, fully anonymized campus-level aggregate view for college wellness teams while keeping individual journals strictly private.
