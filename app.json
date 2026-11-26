@@ -3,7 +3,7 @@
     "name": "MindNest",
     "slug": "mindnest",
     "description": "Student mental well-being companion built with React Native and Expo for daily check-ins, WHO-5 self-reflection, trend charts, and calming coping tools.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",

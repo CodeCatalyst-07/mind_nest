@@ -1,6 +1,14 @@
 # Changelog
 
-All notable phases and milestones in the development of **MindNest** (`v1.0.0`) are documented here.
+All notable phases and milestones in the development of **MindNest** are documented here.
+
+---
+
+## [1.0.1] - 2026-11-26
+
+### Patch — Theme Border Radius Tokens & Integrity Test
+- Added missing `borderRadius.xs` (`4`) and `borderRadius.full` (`9999`) tokens to `src/theme/spacing.js` (keeping `round: 9999`) so pill badges, chips, progress tracks, and calendar cells render with rounded corners.
+- Added `__tests__/themeTokens.test.js` to scan `src/` and ensure every referenced `spacing.*` and `borderRadius.*` token exists.
 
 ---
 
