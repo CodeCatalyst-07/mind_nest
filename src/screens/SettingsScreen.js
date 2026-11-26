@@ -29,6 +29,20 @@ export default function SettingsScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
   const { checkIns, settings, updateSettings, saveCheckIn, loadDemoData, clearAllData } = useData();
   const [reminderNotice, setReminderNotice] = useState('');
+  const [showDevTools, setShowDevTools] = useState(false);
+  const [versionTaps, setVersionTaps] = useState(0);
+
+  const handleVersionTap = () => {
+    if (showDevTools) return;
+    haptics.light();
+    const nextTaps = versionTaps + 1;
+    setVersionTaps(nextTaps);
+    if (nextTaps >= 5) {
+      setShowDevTools(true);
+      haptics.success();
+      Alert.alert('Developer Tools Unlocked', 'Testing tools are now visible below.');
+    }
+  };
 
   const handleSelectTheme = (mode) => {
     haptics.selection();
@@ -89,6 +103,26 @@ export default function SettingsScreen({ navigation }) {
       Alert.alert('Demo Data Loaded', '14 days of sample student data have been generated!');
     } catch (error) {
       Alert.alert('Error', 'Failed to load demo data.');
+    }
+  };
+
+  const handleSeedLowMoodStreak = async () => {
+    try {
+      const today = new Date();
+      for (let i = 0; i < 3; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        await saveCheckIn({
+          date: toDateKey(d),
+          mood: i === 1 ? 1 : 2,
+          energy: 2,
+          sleepHours: 5.5,
+          note: 'Heavy week with exams (seeded low-mood test).',
+        });
+      }
+      Alert.alert('Low-Mood Streak Seeded', '3 consecutive low-mood days saved. Check Home!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to seed low-mood streak.');
     }
   };
 
@@ -303,48 +337,96 @@ export default function SettingsScreen({ navigation }) {
         </TouchableOpacity>
       </Card>
 
-      {/* Temporary Developer Tools Card (hidden behind 5-tap version trigger in Commit 18) */}
-      <Card style={{ borderColor: colors.primary, borderWidth: 1 }}>
-        <View style={styles.navRow}>
-          <Ionicons name="construct-outline" size={20} color={colors.primary} />
-          <AppText variant="bodySmall" weight="bold" style={{ marginLeft: 8, color: colors.primary }}>
-            Developer Tools ({checkIns.length} check-ins)
-          </AppText>
-        </View>
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary, borderRadius: borderRadius.md, marginTop: spacing.sm }]}
-          onPress={handleAddTodayCheckIn}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
-          <AppText variant="bodySmall" style={styles.buttonText}>
-            Add sample check-in for today
-          </AppText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.accent, borderRadius: borderRadius.md, marginTop: spacing.sm }]}
-          onPress={handleLoadDemoData}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="sparkles-outline" size={18} color="#FFFFFF" />
-          <AppText variant="bodySmall" style={styles.buttonText}>
-            Load 14 days of demo data
-          </AppText>
-        </TouchableOpacity>
-      </Card>
-
       {/* Section 7: About */}
       <AppText variant="caption" weight="bold" color={colors.mutedText} style={styles.sectionLabel}>
         ABOUT
       </AppText>
-      <Card style={{ marginBottom: spacing.xl }}>
-        <AppText variant="bodySmall" weight="bold">
-          MindNest v1.0.0
-        </AppText>
+      <Card style={{ marginBottom: showDevTools ? spacing.md : spacing.xl }}>
+        <TouchableOpacity
+          onPress={handleVersionTap}
+          activeOpacity={0.7}
+          style={styles.versionTapArea}
+          accessibilityRole="button"
+          accessibilityLabel="MindNest version 1.0.0"
+        >
+          <AppText variant="bodySmall" weight="bold">
+            MindNest v1.0.0
+          </AppText>
+        </TouchableOpacity>
         <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 4 }}>
           Student well-being companion built with Expo & React Native.
         </AppText>
       </Card>
+
+      {/* Hidden Developer Tools Card (unlocked after tapping version 5 times) */}
+      {showDevTools ? (
+        <Card style={{ borderColor: colors.primary, borderWidth: 1, marginBottom: spacing.xl }}>
+          <View style={styles.navRow}>
+            <Ionicons name="construct-outline" size={20} color={colors.primary} />
+            <AppText variant="bodySmall" weight="bold" style={{ marginLeft: 8, color: colors.primary }}>
+              Developer Tools ({checkIns.length} check-ins)
+            </AppText>
+          </View>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.primary, borderRadius: borderRadius.md, marginTop: spacing.sm }]}
+            onPress={handleAddTodayCheckIn}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
+            <AppText variant="bodySmall" style={styles.buttonText}>
+              Add sample check-in for today
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.accent, borderRadius: borderRadius.md, marginTop: spacing.sm }]}
+            onPress={handleLoadDemoData}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="sparkles-outline" size={18} color="#FFFFFF" />
+            <AppText variant="bodySmall" style={styles.buttonText}>
+              Load 14 days of demo data
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderWidth: 1,
+                borderRadius: borderRadius.md,
+                marginTop: spacing.sm,
+              },
+            ]}
+            onPress={handleSeedLowMoodStreak}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="heart-half-outline" size={18} color={colors.accent} />
+            <AppText variant="bodySmall" weight="bold" color={colors.text} style={{ marginLeft: 8 }}>
+              Seed 3-day low-mood streak
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderWidth: 1,
+                borderRadius: borderRadius.md,
+                marginTop: spacing.sm,
+              },
+            ]}
+            onPress={() => updateSettings({ onboardingDone: false })}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="refresh-outline" size={18} color={colors.primary} />
+            <AppText variant="bodySmall" weight="bold" color={colors.text} style={{ marginLeft: 8 }}>
+              Replay onboarding on next view
+            </AppText>
+          </TouchableOpacity>
+        </Card>
+      ) : null}
     </Screen>
   );
 }
@@ -374,6 +456,10 @@ const styles = StyleSheet.create({
   pinStatusRight: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  versionTapArea: {
+    minHeight: 44,
+    justifyContent: 'center',
   },
   timeChipsRow: {
     flexDirection: 'row',
