@@ -349,13 +349,44 @@ export default function SettingsScreen({ navigation }) {
           accessibilityRole="button"
           accessibilityLabel="MindNest version 1.0.0"
         >
-          <AppText variant="bodySmall" weight="bold">
-            MindNest v1.0.0
-          </AppText>
+          <View style={styles.aboutVersionRow}>
+            <AppText variant="bodySmall" weight="bold">
+              MindNest
+            </AppText>
+            <AppText variant="caption" color={colors.primary} weight="bold">
+              v1.0.0
+            </AppText>
+          </View>
         </TouchableOpacity>
-        <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 4 }}>
-          Student well-being companion built with Expo & React Native.
-        </AppText>
+
+        <View style={[styles.aboutDivider, { borderTopColor: colors.border }]} />
+
+        <View style={styles.aboutBlock}>
+          <Ionicons name="shield-checkmark-outline" size={18} color={colors.primary} />
+          <View style={{ flex: 1 }}>
+            <AppText variant="caption" weight="bold" color={colors.text}>
+              On-Device Privacy
+            </AppText>
+            <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2, lineHeight: 18 }}>
+              All check-ins, journal notes, and assessments stay strictly on your phone. There are no
+              accounts, analytics trackers, or cloud uploads.
+            </AppText>
+          </View>
+        </View>
+
+        <View style={[styles.aboutBlock, { marginTop: spacing.sm }]}>
+          <Ionicons name="book-outline" size={18} color={colors.accent} />
+          <View style={{ flex: 1 }}>
+            <AppText variant="caption" weight="bold" color={colors.text}>
+              Credits & Scope
+            </AppText>
+            <AppText variant="caption" color={colors.mutedText} style={{ marginTop: 2, lineHeight: 18 }}>
+              Weekly questionnaire adapted from the World Health Organization’s WHO-5 Well-Being
+              Index. MindNest is a supportive self-help companion, not a diagnostic or emergency
+              service.
+            </AppText>
+          </View>
+        </View>
       </Card>
 
       {/* Hidden Developer Tools Card (unlocked after tapping version 5 times) */}
@@ -460,6 +491,20 @@ const styles = StyleSheet.create({
   versionTapArea: {
     minHeight: 44,
     justifyContent: 'center',
+  },
+  aboutVersionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  aboutDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    marginVertical: 10,
+  },
+  aboutBlock: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
   },
   timeChipsRow: {
     flexDirection: 'row',
