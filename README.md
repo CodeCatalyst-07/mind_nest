@@ -135,3 +135,12 @@ npx expo-doctor
 - **Optional summary export**: Let students export a read-only weekly PDF or JSON report to bring to a campus counsellor if they choose.
 - **Expanded coping library**: Add customizable breathing durations, ambient audio/timer chimes, and short study-break stretch prompts.
 - **Optional institutional check-in portal**: Support an opt-in, fully anonymized campus-level aggregate view for college wellness teams while keeping individual journals strictly private.
+
+---
+
+## 🙏 References and Credits
+
+- **WHO-5 Well-Being Index**: Adapted from the 5-item positive well-being questionnaire published by the **World Health Organization (WHO)**.
+- **Tele-MANAS (`14416` / `1-800-891-4416`) & Emergency (`112`)**: National Tele Mental Health Programme run by the **Ministry of Health and Family Welfare, Government of India**.
+- **Expo & React Native**: Cross-platform mobile runtime (`expo`, `react-native`, `@react-navigation/*`, `AsyncStorage`, `expo-secure-store`, `expo-crypto`, `expo-haptics`, `expo-notifications`, `expo-keep-awake`, `expo-linear-gradient`).
+- **Graphics & Typography**: `react-native-svg` for custom visualizations, `@expo-google-fonts/nunito` for typography, and `@expo/vector-icons` (`Ionicons`) for iconography.
