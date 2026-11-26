@@ -5,7 +5,7 @@
  * and action cards to open the Daily Check-in and Weekly Questionnaire routes.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -13,11 +13,15 @@ import Screen from '../components/Screen';
 import AppText from '../components/AppText';
 import Card from '../components/Card';
 import AppButton from '../components/AppButton';
+import SupportCard from '../components/SupportCard';
 
 import { useTheme } from '../theme/ThemeContext';
 import { useData } from '../context/DataContext';
 import { getMoodByValue } from '../data/moods';
 import { getCategoryDetails } from '../utils/scoring';
+import { detectLowMoodStreak } from '../utils/support';
+import { toDateKey } from '../utils/dateUtils';
+import { STORAGE_KEYS, loadData, saveData } from '../utils/storage';
 
 function getTimeGreeting() {
   const hour = new Date().getHours();
@@ -29,6 +33,29 @@ function getTimeGreeting() {
 export default function HomeScreen({ navigation }) {
   const { colors, spacing, borderRadius } = useTheme();
   const { checkIns, assessments, getTodayCheckIn } = useData();
+  const [dismissedSupportDate, setDismissedSupportDate] = useState(null);
+
+  const todayKey = toDateKey(new Date());
+  const hasLowMoodStreak = detectLowMoodStreak(checkIns);
+
+  useEffect(() => {
+    let mounted = true;
+    loadData(STORAGE_KEYS.SUPPORT_DISMISSED_DATE, null).then((savedDate) => {
+      if (mounted && savedDate) {
+        setDismissedSupportDate(savedDate);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleDismissSupport = async () => {
+    setDismissedSupportDate(todayKey);
+    await saveData(STORAGE_KEYS.SUPPORT_DISMISSED_DATE, todayKey);
+  };
+
+  const showSupportCard = hasLowMoodStreak && dismissedSupportDate !== todayKey;
 
   const todayCheckIn = getTodayCheckIn();
   const todayMood = todayCheckIn ? getMoodByValue(todayCheckIn.mood) : null;
@@ -60,6 +87,14 @@ export default function HomeScreen({ navigation }) {
           Welcome to MindNest • Your student wellness sanctuary
         </AppText>
       </View>
+
+      {/* Gentle Safety Net Card (only after 3 consecutive low mood days, dismissible for today) */}
+      {showSupportCard ? (
+        <SupportCard
+          onMoreOptions={() => navigation.navigate('Support')}
+          onDismiss={handleDismissSupport}
+        />
+      ) : null}
 
       {/* Dynamic "Today" Card */}
       {!todayCheckIn ? (

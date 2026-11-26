@@ -14,6 +14,7 @@ export const STORAGE_KEYS = {
   SETTINGS: '@mindnest_settings',
   GRATITUDE: '@mindnest_gratitude',
   SESSIONS: '@mindnest_sessions',
+  SUPPORT_DISMISSED_DATE: '@mindnest_support_dismissed_date',
 };
 
 /**
