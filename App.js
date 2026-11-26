@@ -22,6 +22,7 @@ import { DataProvider, useData } from './src/context/DataContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import PinLockScreen from './src/screens/PinLockScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import { hasPinSet } from './src/utils/pinLock';
 
 const BACKGROUND_LOCK_TIMEOUT_MS = 30 * 1000; // 30 seconds
@@ -140,8 +141,10 @@ export default function App() {
   }
 
   return (
-    <DataProvider>
-      <ThemedApp />
-    </DataProvider>
+    <ErrorBoundary>
+      <DataProvider>
+        <ThemedApp />
+      </DataProvider>
+    </ErrorBoundary>
   );
 }
