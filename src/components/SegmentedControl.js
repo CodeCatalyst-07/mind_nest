@@ -15,7 +15,7 @@ export default function SegmentedControl({
   onSelect,
   style,
 }) {
-  const { colors, borderRadius, spacing } = useTheme();
+  const { colors, borderRadius } = useTheme();
 
   // Find active index
   const activeIndex = Math.max(

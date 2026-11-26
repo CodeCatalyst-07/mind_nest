@@ -5,7 +5,7 @@
  * includes ambient mood gradient lighting, haptics, edit mode, and discard protection.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -40,7 +40,7 @@ import { haptics } from '../utils/haptics';
 const TOTAL_STEPS = 4; // Step 0: Mood, 1: Energy, 2: Sleep, 3: Note/Tags. Step 4 is Review.
 
 export default function CheckInScreen({ navigation }) {
-  const { colors, spacing, borderRadius, isDark } = useTheme();
+  const { colors, spacing, borderRadius } = useTheme();
   const { getTodayCheckIn, saveCheckIn } = useData();
 
   // Check if user is editing an already completed check-in for today
@@ -147,7 +147,7 @@ export default function CheckInScreen({ navigation }) {
           useNativeDriver: true,
         }),
       ]).start();
-    } catch (error) {
+    } catch {
       Alert.alert('Save Error', 'Could not save check-in. Please try again.');
     } finally {
       setIsSaving(false);

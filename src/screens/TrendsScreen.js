@@ -50,7 +50,7 @@ export default function TrendsScreen({ navigation }) {
   const moodEmoji = getMoodEmoji(avgMood);
 
   // Personalized non-clinical insights
-  const insightsList = generateInsights(checkIns, assessments);
+  const insightsList = generateInsights(checkIns);
 
   // Recent check-ins sorted newest to oldest
   const recentCheckIns = [...checkIns]

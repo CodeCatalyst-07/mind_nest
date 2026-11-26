@@ -92,7 +92,7 @@ export default function SettingsScreen({ navigation }) {
         note: 'Sample check-in created from developer tools!',
       });
       Alert.alert('Success', "Today's sample check-in has been saved!");
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to save sample check-in.');
     }
   };
@@ -101,7 +101,7 @@ export default function SettingsScreen({ navigation }) {
     try {
       await loadDemoData(14);
       Alert.alert('Demo Data Loaded', '14 days of sample student data have been generated!');
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to load demo data.');
     }
   };
@@ -121,7 +121,7 @@ export default function SettingsScreen({ navigation }) {
         });
       }
       Alert.alert('Low-Mood Streak Seeded', '3 consecutive low-mood days saved. Check Home!');
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to seed low-mood streak.');
     }
   };

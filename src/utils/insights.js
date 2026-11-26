@@ -15,10 +15,9 @@ const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frida
  * Analyzes recorded check-ins and returns a list of supportive insight objects.
  *
  * @param {Array<object>} checkIns - All check-in records
- * @param {Array<object>} [assessments=[]] - Assessment records (optional)
  * @returns {Array<{ id: string, icon: string, title: string, text: string }>}
  */
-export function generateInsights(checkIns = [], assessments = []) {
+export function generateInsights(checkIns = []) {
   if (!Array.isArray(checkIns) || checkIns.length === 0) {
     return [
       {
